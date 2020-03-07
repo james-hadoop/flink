@@ -348,7 +348,7 @@ public class KafkaConsumerThread extends Thread {
 	 */
 	void setOffsetsToCommit(
 			Map<TopicPartition, OffsetAndMetadata> offsetsToCommit,
-			@Nonnull KafkaCommitCallback commitCallback) {
+			@Nonnull KafkaCommitCallback commitCallbcommitCallbackack) {
 
 		// record the work to be committed by the main consumer thread and make sure the consumer notices that
 		if (nextOffsetsToCommit.getAndSet(Tuple2.of(offsetsToCommit, commitCallback)) != null) {
