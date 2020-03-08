@@ -28,7 +28,21 @@ ContentExDetect -> org.apache.flink.streaming.api.environment.StreamExecutionEnv
 
 ***org.apache.flink.streaming.api.environment.StreamExecutionEnvironment***
 
-```java
+```
+/**
+ * The StreamExecutionEnvironment is the context in which a streaming program is executed. A
+ * {@link LocalStreamEnvironment} will cause execution in the current JVM, a
+ * {@link RemoteStreamEnvironment} will cause execution on a remote setup.
+ *
+ * <p>The environment provides methods to control the job execution (such as setting the parallelism
+ * or the fault tolerance/checkpointing parameters) and to interact with the outside world (data access).
+ *
+ * @see org.apache.flink.streaming.api.environment.LocalStreamEnvironment
+ * @see org.apache.flink.streaming.api.environment.RemoteStreamEnvironment
+ */
+@Public
+public class StreamExecutionEnvironment {
+
 	/** The default name to use for a streaming job if no other name has been specified. */
 	public static final String DEFAULT_JOB_NAME = "Flink Streaming Job";
 
@@ -70,7 +84,111 @@ ContentExDetect -> org.apache.flink.streaming.api.environment.StreamExecutionEnv
 	private TimeCharacteristic timeCharacteristic = DEFAULT_TIME_CHARACTERISTIC;
 
 	protected final List<Tuple2<String, DistributedCache.DistributedCacheEntry>> cacheFile = new ArrayList<>();
+
+	private final PipelineExecutorServiceLoader executorServiceLoader;
+
+	private final Configuration configuration;
+
+	private final ClassLoader userClassloader;
+
+	private final List<JobListener> jobListeners = new ArrayList<>();
+
+	// --------------------------------------------------------------------------------------------
+	// Constructor and Properties
+	// --------------------------------------------------------------------------------------------
+
+	public StreamExecutionEnvironment() {
+		this(new Configuration());
+		// unfortunately, StreamExecutionEnvironment always (implicitly) had a public constructor.
+		// This constructor is not useful because the execution environment cannot be used for
+		// execution. We're keeping this to appease the binary compatibiliy checks.
+	}
+
+	/**
+	 * Creates a new {@link StreamExecutionEnvironment} that will use the given {@link
+	 * Configuration} to configure the {@link PipelineExecutor}.
+	 */
+	@PublicEvolving
+	public StreamExecutionEnvironment(final Configuration configuration) {
+		this(DefaultExecutorServiceLoader.INSTANCE, configuration, null);
+	}
+
+	/**
+	 * Creates a new {@link StreamExecutionEnvironment} that will use the given {@link
+	 * Configuration} to configure the {@link PipelineExecutor}.
+	 *
+	 * <p>In addition, this constructor allows specifying the {@link PipelineExecutorServiceLoader} and
+	 * user code {@link ClassLoader}.
+	 */
+	@PublicEvolving
+	public StreamExecutionEnvironment(
+			final PipelineExecutorServiceLoader executorServiceLoader,
+			final Configuration configuration,
+			final ClassLoader userClassloader) {
+		this.executorServiceLoader = checkNotNull(executorServiceLoader);
+		this.configuration = checkNotNull(configuration);
+		this.userClassloader = userClassloader == null ? getClass().getClassLoader() : userClassloader;
+
+		// the configuration of a job or an operator can be specified at the following places:
+		//     i) at the operator level using e.g. parallelism using the SingleOutputStreamOperator.setParallelism().
+		//     ii) programmatically by using e.g. the env.setRestartStrategy() method
+		//     iii) in the configuration passed here
+		//
+		// if specified in multiple places, the priority order is the above.
+		//
+		// Given this, it is safe to overwrite the execution config default values here because all other ways assume
+		// that the env is already instantiated so they will overwrite the value passed here.
+		this.configure(this.configuration, this.userClassloader);
+	}
+	
+	......
+		
+	/**
+	 * by james
+	 * StreamGraph -> JobExecutionResult
+	 */
+	/**
+	 * Triggers the program execution. The environment will execute all parts of
+	 * the program that have resulted in a "sink" operation. Sink operations are
+	 * for example printing results or forwarding them to a message queue.
+	 *
+	 * @param streamGraph the stream graph representing the transformations
+	 * @return The result of the job execution, containing elapsed time and accumulators.
+	 * @throws Exception which occurs during job execution.
+	 */
+	@Internal
+	public JobExecutionResult execute(StreamGraph streamGraph) throws Exception {
+		final JobClient jobClient = executeAsync(streamGraph);
+
+		try {
+			final JobExecutionResult jobExecutionResult;
+
+			if (configuration.getBoolean(DeploymentOptions.ATTACHED)) {
+				jobExecutionResult = jobClient.getJobExecutionResult(userClassloader).get();
+			} else {
+				jobExecutionResult = new DetachedJobExecutionResult(jobClient.getJobID());
+			}
+
+			jobListeners.forEach(jobListener -> jobListener.onJobExecuted(jobExecutionResult, null));
+
+			return jobExecutionResult;
+		} catch (Throwable t) {
+			jobListeners.forEach(jobListener -> {
+				jobListener.onJobExecuted(null, ExceptionUtils.stripExecutionException(t));
+			});
+			ExceptionUtils.rethrowException(t);
+
+			// never reached, only make javac happy
+			return null;
+		}
+	}
+	
+	......
+	
+}	
 ```
+
+![StreamExecutionEnvironment_execute()](pic/StreamExecutionEnvironment_execute().png)
 
 
 <h2 id="Source">Source</h2>
@@ -79,7 +197,7 @@ ContentExDetect -> org.apache.flink.streaming.api.environment.StreamExecutionEnv
 
 ***org.apache.flink.streaming.api.environment.StreamExecutionEnvironment***
 
-```java
+```
 	/**
 	 * Reads the given file line-by-line and creates a data stream that contains a string with the
 	 * contents of each such line. The {@link java.nio.charset.Charset} with the given name will be
@@ -109,7 +227,7 @@ ContentExDetect -> org.apache.flink.streaming.api.environment.StreamExecutionEnv
 	}
 ```
 
-```java
+```
 	private <OUT> DataStreamSource<OUT> createFileInput(FileInputFormat<OUT> inputFormat,
 														TypeInformation<OUT> typeInfo,
 														String sourceName,
@@ -147,7 +265,7 @@ ContentExDetect -> org.apache.flink.streaming.api.environment.StreamExecutionEnv
 
 ![ContinuousFileMonitoringFunction](pic/ContinuousFileMonitoringFunction.png)
 
-```java
+```
 public class ContinuousFileMonitoringFunction<OUT>
 	extends RichSourceFunction<TimestampedFileInputSplit> implements CheckpointedFunction {
 	private static final long serialVersionUID = 1L;
@@ -1458,7 +1576,6 @@ public abstract class AbstractRuntimeUDFContext implements RuntimeContext {
 ***org.apache.flink.streaming.api.operators.StreamingRuntimeContext***
 
 ![StreamingRuntimeContext](pic/StreamingRuntimeContext.png)
-
 ``` 
 /**
  * Implementation of the {@link org.apache.flink.api.common.functions.RuntimeContext},

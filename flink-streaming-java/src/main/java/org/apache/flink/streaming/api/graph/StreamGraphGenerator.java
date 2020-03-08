@@ -198,6 +198,11 @@ public class StreamGraphGenerator {
 		this.savepointRestoreSettings = savepointRestoreSettings;
 	}
 
+	/**
+	 * byjames
+	 * 被StreamExecutionEnvironment调用，生成StreamGraph
+	 * @return
+	 */
 	public StreamGraph generate() {
 		streamGraph = new StreamGraph(executionConfig, checkpointConfig, savepointRestoreSettings);
 		streamGraph.setStateBackend(stateBackend);
