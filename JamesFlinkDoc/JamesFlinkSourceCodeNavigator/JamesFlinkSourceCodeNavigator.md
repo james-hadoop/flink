@@ -141,7 +141,79 @@ public class StreamExecutionEnvironment {
 		this.configure(this.configuration, this.userClassloader);
 	}
 	
-	......
+......
+	
+	/**
+	 * by james.
+	 * 通过getStreamGraphGenerator()，生成StreamGraphGenerator
+	 * 通过StreamGraphGenerator的generate()，生成StreamGraph
+	 * StreamGraph的getJobGraph(@Nullable JobID jobID)方法调用StreamingJobGraphGenerator的createJobGraph()方法，
+	 * 可以直接生成JobGraph。
+	 */
+	/**
+	 * Getter of the {@link org.apache.flink.streaming.api.graph.StreamGraph StreamGraph} of the streaming job
+	 * with the option to clear previously registered {@link Transformation transformations}. Clearing the
+	 * transformations allows, for example, to not re-execute the same operations when calling
+	 * {@link #execute()} multiple times.
+	 *
+	 * @param jobName              Desired name of the job
+	 * @param clearTransformations Whether or not to clear previously registered transformations
+	 * @return The streamgraph representing the transformations
+	 */
+	@Internal
+	public StreamGraph getStreamGraph(String jobName, boolean clearTransformations) {
+		StreamGraph streamGraph = getStreamGraphGenerator().setJobName(jobName).generate();
+		if (clearTransformations) {
+			this.transformations.clear();
+		}
+		return streamGraph;
+	}
+
+	/**
+	 * by james
+	 * 参数transformations是需要StreamExecutionEnvironment在调用该方法前传入的
+	 * transformations是一个存放transformation的List
+	 * transformations是通过调用addOperator()方法，添加transformation元素的，如addSource()、addSink()
+	 * @return
+	 */
+	private StreamGraphGenerator getStreamGraphGenerator() {
+		if (transformations.size() <= 0) {
+			throw new IllegalStateException("No operators defined in streaming topology. Cannot execute.");
+		}
+		return new StreamGraphGenerator(transformations, config, checkpointCfg)
+			.setStateBackend(defaultStateBackend)
+			.setChaining(isChainingEnabled)
+			.setUserArtifacts(cacheFile)
+			.setTimeCharacteristic(timeCharacteristic)
+			.setDefaultBufferTimeout(bufferTimeout);
+	}
+	
+......
+
+	/**
+	 * by james
+	 * 当addOperator()方法被调用时，会在StreamExecutionEnvironment的transformations会add对应的transformation
+	 * DataStream的addSink()方法会调用DataStreamSink的getTransformation()方法
+	 * 并非所有的Operator都有transformation，只有个别的Operator才有对应的transformation，如：Source, Sink, Union, Split
+	 * 详细说明，见org.apache.flink.api.dag.Transformation
+	 */
+	/**
+	 * Adds an operator to the list of operators that should be executed when calling
+	 * {@link #execute}.
+	 *
+	 * <p>When calling {@link #execute()} only the operators that where previously added to the list
+	 * are executed.
+	 *
+	 * <p>This is not meant to be used by users. The API methods that create operators must call
+	 * this method.
+	 */
+	@Internal
+	public void addOperator(Transformation<?> transformation) {
+		Preconditions.checkNotNull(transformation, "transformation must not be null.");
+		this.transformations.add(transformation);
+	}	
+	
+......
 		
 	/**
 	 * by james
@@ -183,13 +255,317 @@ public class StreamExecutionEnvironment {
 		}
 	}
 	
-	......
+......
 	
 }	
 ```
 
-![StreamExecutionEnvironment_execute()](pic/StreamExecutionEnvironment_execute().png)
+***生成StreamGraph***
 
+![StreamExecutionEnvironment_getStreamGraph()](pic/StreamExecutionEnvironment_getStreamGraph().png)
+
+<h3 id="StreamGraphGenerator">StreamGraphGenerator</h3>
+
+***org.apache.flink.streaming.api.graph.StreamGraphGenerator***
+
+``` 
+/**
+ * A generator that generates a {@link StreamGraph} from a graph of
+ * {@link Transformation}s.
+ *
+ * <p>This traverses the tree of {@code Transformations} starting from the sinks. At each
+ * transformation we recursively transform the inputs, then create a node in the {@code StreamGraph}
+ * and add edges from the input Nodes to our newly created node. The transformation methods
+ * return the IDs of the nodes in the StreamGraph that represent the input transformation. Several
+ * IDs can be returned to be able to deal with feedback transformations and unions.
+ *
+ * <p>Partitioning, split/select and union don't create actual nodes in the {@code StreamGraph}. For
+ * these, we create a virtual node in the {@code StreamGraph} that holds the specific property, i.e.
+ * partitioning, selector and so on. When an edge is created from a virtual node to a downstream
+ * node the {@code StreamGraph} resolved the id of the original node and creates an edge
+ * in the graph with the desired property. For example, if you have this graph:
+ *
+ * <pre>
+ *     Map-1 -&gt; HashPartition-2 -&gt; Map-3
+ * </pre>
+ *
+ * <p>where the numbers represent transformation IDs. We first recurse all the way down. {@code Map-1}
+ * is transformed, i.e. we create a {@code StreamNode} with ID 1. Then we transform the
+ * {@code HashPartition}, for this, we create virtual node of ID 4 that holds the property
+ * {@code HashPartition}. This transformation returns the ID 4. Then we transform the {@code Map-3}.
+ * We add the edge {@code 4 -> 3}. The {@code StreamGraph} resolved the actual node with ID 1 and
+ * creates and edge {@code 1 -> 3} with the property HashPartition.
+ */
+@Internal
+public class StreamGraphGenerator {
+
+	private static final Logger LOG = LoggerFactory.getLogger(StreamGraphGenerator.class);
+
+	public static final int DEFAULT_LOWER_BOUND_MAX_PARALLELISM = KeyGroupRangeAssignment.DEFAULT_LOWER_BOUND_MAX_PARALLELISM;
+
+	public static final ScheduleMode DEFAULT_SCHEDULE_MODE = ScheduleMode.EAGER;
+
+	public static final TimeCharacteristic DEFAULT_TIME_CHARACTERISTIC = TimeCharacteristic.ProcessingTime;
+
+	public static final String DEFAULT_JOB_NAME = "Flink Streaming Job";
+
+	/** The default buffer timeout (max delay of records in the network stack). */
+	public static final long DEFAULT_NETWORK_BUFFER_TIMEOUT = 100L;
+
+	public static final String DEFAULT_SLOT_SHARING_GROUP = "default";
+
+	private final List<Transformation<?>> transformations;
+
+	private final ExecutionConfig executionConfig;
+
+	private final CheckpointConfig checkpointConfig;
+
+	private SavepointRestoreSettings savepointRestoreSettings = SavepointRestoreSettings.none();
+
+	private StateBackend stateBackend;
+
+	private boolean chaining = true;
+
+	private ScheduleMode scheduleMode = DEFAULT_SCHEDULE_MODE;
+
+	private Collection<Tuple2<String, DistributedCache.DistributedCacheEntry>> userArtifacts;
+
+	private TimeCharacteristic timeCharacteristic = DEFAULT_TIME_CHARACTERISTIC;
+
+	private long defaultBufferTimeout = DEFAULT_NETWORK_BUFFER_TIMEOUT;
+
+	private String jobName = DEFAULT_JOB_NAME;
+	
+......
+
+	/**
+	 * byjames
+	 * 被StreamExecutionEnvironment调用，生成StreamGraph
+	 * 调用transform()方法，对包含的transform进行转换
+	 * @return
+	 */
+	public StreamGraph generate() {
+		streamGraph = new StreamGraph(executionConfig, checkpointConfig, savepointRestoreSettings);
+		streamGraph.setStateBackend(stateBackend);
+		streamGraph.setChaining(chaining);
+		streamGraph.setScheduleMode(scheduleMode);
+		streamGraph.setUserArtifacts(userArtifacts);
+		streamGraph.setTimeCharacteristic(timeCharacteristic);
+		streamGraph.setJobName(jobName);
+		streamGraph.setBlockingConnectionsBetweenChains(blockingConnectionsBetweenChains);
+
+		alreadyTransformed = new HashMap<>();
+
+		for (Transformation<?> transformation: transformations) {
+			transform(transformation);
+		}
+
+		final StreamGraph builtStreamGraph = streamGraph;
+
+		alreadyTransformed.clear();
+		alreadyTransformed = null;
+		streamGraph = null;
+
+		return builtStreamGraph;
+	}
+	
+......
+		
+```
+
+<h3 id="Transformation">Transformation</h3>
+
+***org.apache.flink.api.dag.Transformation***
+
+``` 
+/**
+ * A {@code Transformation} represents the operation that creates a
+ * DataStream. Every DataStream has an underlying
+ * {@code Transformation} that is the origin of said DataStream.
+ *
+ * <p>API operations such as DataStream#map create
+ * a tree of {@code Transformation}s underneath. When the stream program is to be executed
+ * this graph is translated to a StreamGraph using StreamGraphGenerator.
+ *
+ * <p>A {@code Transformation} does not necessarily correspond to a physical operation
+ * at runtime. Some operations are only DataStreamlogical concepts. Examples of this are union,
+ * split/select data stream, partitioning.
+ *
+ * <p>The following graph of {@code Transformations}:
+ * <pre>{@code
+ *   Source              Source
+ *      +                   +
+ *      |                   |
+ *      v                   v
+ *  Rebalance          HashPartition
+ *      +                   +
+ *      |                   |
+ *      |                   |
+ *      +------>Union<------+
+ *                +
+ *                |
+ *                v
+ *              Split
+ *                +
+ *                |
+ *                v
+ *              Select
+ *                +
+ *                v
+ *               Map
+ *                +
+ *                |
+ *                v
+ *              Sink
+ * }</pre>
+ *
+ * <p>Would result in this graph of operations at runtime:
+ * <pre>{@code
+ *  Source              Source
+ *    +                   +
+ *    |                   |
+ *    |                   |
+ *    +------->Map<-------+
+ *              +
+ *              |
+ *              v
+ *             Sink
+ * }</pre>
+ *
+ * <p>The information about partitioning, union, split/select end up being encoded in the edges
+ * that connect the sources to the map operation.
+ *
+ * @param <T> The type of the elements that result from this {@code Transformation}
+ */
+@Internal
+public abstract class Transformation<T> {
+
+	// Has to be equal to StreamGraphGenerator.UPPER_BOUND_MAX_PARALLELISM
+	public static final int UPPER_BOUND_MAX_PARALLELISM = 1 << 15;
+
+	public static final int DEFAULT_MANAGED_MEMORY_WEIGHT = 1;
+
+	// This is used to assign a unique ID to every Transformation
+	protected static Integer idCounter = 0;
+	
+......
+	
+```
+
+<h3 id="StreamingJobGraphGenerator">StreamingJobGraphGenerator</h3>
+
+***org.apache.flink.streaming.api.graph.StreamingJobGraphGenerator***
+
+``` 
+/** by james.
+ * StreamGraph -> JobGraph
+ */
+/**
+ * The StreamingJobGraphGenerator converts a {@link StreamGraph} into a {@link JobGraph}.
+ */
+@Internal
+public class StreamingJobGraphGenerator {
+
+	private static final Logger LOG = LoggerFactory.getLogger(StreamingJobGraphGenerator.class);
+
+	private static final int MANAGED_MEMORY_FRACTION_SCALE = 16;
+
+	// ------------------------------------------------------------------------
+
+	public static JobGraph createJobGraph(StreamGraph streamGraph) {
+		return createJobGraph(streamGraph, null);
+	}
+
+	public static JobGraph createJobGraph(StreamGraph streamGraph, @Nullable JobID jobID) {
+		return new StreamingJobGraphGenerator(streamGraph, jobID).createJobGraph();
+	}
+
+	// ------------------------------------------------------------------------
+
+	private final StreamGraph streamGraph;
+
+	private final Map<Integer, JobVertex> jobVertices;
+	private final JobGraph jobGraph;
+	private final Collection<Integer> builtVertices;
+
+	private final List<StreamEdge> physicalEdgesInOrder;
+
+	private final Map<Integer, Map<Integer, StreamConfig>> chainedConfigs;
+
+	private final Map<Integer, StreamConfig> vertexConfigs;
+	private final Map<Integer, String> chainedNames;
+
+	private final Map<Integer, ResourceSpec> chainedMinResources;
+	private final Map<Integer, ResourceSpec> chainedPreferredResources;
+
+	private final Map<Integer, InputOutputFormatContainer> chainedInputOutputFormats;
+
+	private final StreamGraphHasher defaultStreamGraphHasher;
+	private final List<StreamGraphHasher> legacyStreamGraphHashers;
+
+......
+
+	private JobGraph createJobGraph() {
+		preValidate();
+
+		// make sure that all vertices start immediately
+		jobGraph.setScheduleMode(streamGraph.getScheduleMode());
+
+		// Generate deterministic hashes for the nodes in order to identify them across
+		// submission iff they didn't change.
+		Map<Integer, byte[]> hashes = defaultStreamGraphHasher.traverseStreamGraphAndGenerateHashes(streamGraph);
+
+		// Generate legacy version hashes for backwards compatibility
+		List<Map<Integer, byte[]>> legacyHashes = new ArrayList<>(legacyStreamGraphHashers.size());
+		for (StreamGraphHasher hasher : legacyStreamGraphHashers) {
+			legacyHashes.add(hasher.traverseStreamGraphAndGenerateHashes(streamGraph));
+		}
+
+		Map<Integer, List<Tuple2<byte[], byte[]>>> chainedOperatorHashes = new HashMap<>();
+
+		/**
+		 * by james.
+		 * 被StreamGraph的getJobGraph()方法调用
+		 * StreamGraph -> JobGraph的主要工作就是setChaining()，优化Operator的计算
+		 */
+		setChaining(hashes, legacyHashes, chainedOperatorHashes);
+
+		setPhysicalEdges();
+
+		setSlotSharingAndCoLocation();
+
+		setManagedMemoryFraction(
+			Collections.unmodifiableMap(jobVertices),
+			Collections.unmodifiableMap(vertexConfigs),
+			Collections.unmodifiableMap(chainedConfigs),
+			id -> streamGraph.getStreamNode(id).getMinResources(),
+			id -> streamGraph.getStreamNode(id).getManagedMemoryWeight());
+
+		configureCheckpointing();
+
+		jobGraph.setSavepointRestoreSettings(streamGraph.getSavepointRestoreSettings());
+
+		JobGraphGenerator.addUserArtifactEntries(streamGraph.getUserArtifacts(), jobGraph);
+
+		// set the ExecutionConfig last when it has been finalized
+		try {
+			jobGraph.setExecutionConfig(streamGraph.getExecutionConfig());
+		}
+		catch (IOException e) {
+			throw new IllegalConfigurationException("Could not serialize the ExecutionConfig." +
+					"This indicates that non-serializable types (like custom serializers) were registered");
+		}
+
+		return jobGraph;
+	}
+	
+......
+
+}
+
+```
+
+![StreamGraph_getJobGraph()](pic/StreamGraph_getJobGraph().png)
 
 <h2 id="Source">Source</h2>
 
@@ -621,7 +997,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
 		ResultTypeQueryable<T>,
 		CheckpointedFunction {
 		
-		......
+	......
 		
 	/**
 	 * Base constructor.
@@ -649,7 +1025,7 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
 		this.useMetrics = useMetrics;
 	}
 	
-	......
+......
 	
 }			
 ```
@@ -1566,7 +1942,7 @@ public abstract class AbstractRuntimeUDFContext implements RuntimeContext {
 		this.metrics = metrics;
 	}
 	
-	......
+......
 	
 }	
 ```
@@ -1609,7 +1985,7 @@ public class StreamingRuntimeContext extends AbstractRuntimeUDFContext {
 		this.operatorUniqueID = operator.getOperatorID().toString();
 	}
 	
-	......
+......
 	
 }	
 ```
@@ -2029,7 +2405,7 @@ public class TaskInfo {
 		this.allocationIDAsString = checkNotNull(allocationIDAsString);
 	}
 	
-	......
+......
 	
 }	
 ```
@@ -2082,7 +2458,7 @@ public class TaskInformation implements Serializable {
 		this.taskConfiguration = Preconditions.checkNotNull(taskConfiguration);
 	}
 	
-	......
+......
 	
 }	
 ```
@@ -2229,7 +2605,78 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		this.resourceManagerHeartbeatManager = createResourceManagerHeartbeatManager(heartbeatServices, resourceId);
 	}
 	
-	......
+......
+	
+}	
+```
+
+<h2 id="MemoryManager">MemoryManager</h2>
+
+***org.apache.flink.runtime.memory.MemoryManager***
+
+```java
+/**
+ * The memory manager governs the memory that Flink uses for sorting, hashing, and caching. Memory is represented
+ * either in {@link MemorySegment}s of equal size and arbitrary type or in reserved chunks of certain size and {@link MemoryType}.
+ * Operators allocate the memory either by requesting a number of memory segments or by reserving chunks.
+ * Any allocated memory has to be released to be reused later.
+ *
+ * <p>Which {@link MemoryType}s the MemoryManager serves and their total sizes can be passed as an argument
+ * to the constructor.
+ *
+ * <p>The memory segments may be represented as on-heap byte arrays or as off-heap memory regions
+ * (both via {@link HybridMemorySegment}). Releasing a memory segment will make it re-claimable
+ * by the garbage collector.
+ */
+public class MemoryManager {
+
+	private static final Logger LOG = LoggerFactory.getLogger(MemoryManager.class);
+	/** The default memory page size. Currently set to 32 KiBytes. */
+	public static final int DEFAULT_PAGE_SIZE = 32 * 1024;
+
+	/** The minimal memory page size. Currently set to 4 KiBytes. */
+	public static final int MIN_PAGE_SIZE = 4 * 1024;
+
+	// ------------------------------------------------------------------------
+
+	/** Memory segments allocated per memory owner. */
+	private final Map<Object, Set<MemorySegment>> allocatedSegments;
+
+	/** Reserved memory per memory owner. */
+	private final Map<Object, Map<MemoryType, Long>> reservedMemory;
+
+	private final KeyedBudgetManager<MemoryType> budgetByType;
+
+	private final SharedResources sharedResources;
+
+	/** Flag whether the close() has already been invoked. */
+	private volatile boolean isShutDown;
+
+	/**
+	 * Creates a memory manager with the given memory types, capacity and given page size.
+	 *
+	 * @param memorySizeByType The total size of the memory to be managed by this memory manager for each type (heap / off-heap).
+	 * @param pageSize The size of the pages handed out by the memory manager.
+	 */
+	public MemoryManager(Map<MemoryType, Long> memorySizeByType, int pageSize) {
+		for (Entry<MemoryType, Long> sizeForType : memorySizeByType.entrySet()) {
+			sanityCheck(sizeForType.getValue(), pageSize, sizeForType.getKey());
+		}
+
+		this.allocatedSegments = new ConcurrentHashMap<>();
+		this.reservedMemory = new ConcurrentHashMap<>();
+		this.budgetByType = new KeyedBudgetManager<>(memorySizeByType, pageSize);
+		this.sharedResources = new SharedResources();
+		verifyIntTotalNumberOfPages(memorySizeByType, budgetByType.maxTotalNumberOfPages());
+
+		LOG.debug(
+			"Initialized MemoryManager with total memory size {} ({}), page size {}.",
+			budgetByType.totalAvailableBudget(),
+			memorySizeByType,
+			pageSize);
+	}
+	
+......
 	
 }	
 ```

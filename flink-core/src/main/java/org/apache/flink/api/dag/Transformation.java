@@ -43,7 +43,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
  * this graph is translated to a StreamGraph using StreamGraphGenerator.
  *
  * <p>A {@code Transformation} does not necessarily correspond to a physical operation
- * at runtime. Some operations are only logical concepts. Examples of this are union,
+ * at runtime. Some operations are only DataStreamlogical concepts. Examples of this are union,
  * split/select data stream, partitioning.
  *
  * <p>The following graph of {@code Transformations}:

@@ -199,8 +199,9 @@ public class StreamGraphGenerator {
 	}
 
 	/**
-	 * byjames
+	 * by james.
 	 * 被StreamExecutionEnvironment调用，生成StreamGraph
+	 * 调用transform()方法，对包含的transform进行转换
 	 * @return
 	 */
 	public StreamGraph generate() {

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.flink.streaming.api.transformations.OneInputTransformation</OriginalElement>
+  <nodes>
+    <node x="9.857142857142804" y="158.0">org.apache.flink.streaming.api.transformations.PhysicalTransformation</node>
+    <node x="131.60714285714283" y="0.0">org.apache.flink.annotation.Internal</node>
+    <node x="0.0" y="79.0">org.apache.flink.api.dag.Transformation</node>
+    <node x="81.60714285714279" y="237.0">org.apache.flink.streaming.api.transformations.OneInputTransformation</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.flink.streaming.api.transformations.PhysicalTransformation" target="org.apache.flink.api.dag.Transformation">
+      <point x="-66.49999999999997" y="-14.5" />
+      <point x="76.35714285714283" y="133.0" />
+      <point x="93.0" y="133.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.api.dag.Transformation" target="org.apache.flink.annotation.Internal">
+      <point x="0.0" y="-14.5" />
+      <point x="93.0" y="54.0" />
+      <point x="152.60714285714283" y="54.0" />
+      <point x="-42.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.transformations.PhysicalTransformation" target="org.apache.flink.annotation.Internal">
+      <point x="66.50000000000003" y="-14.5" />
+      <point x="209.35714285714283" y="133.0" />
+      <point x="196.5" y="133.0" />
+      <point x="196.5" y="54.0" />
+      <point x="194.60714285714283" y="54.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.transformations.OneInputTransformation" target="org.apache.flink.annotation.Internal">
+      <point x="66.50000000000003" y="-14.5" />
+      <point x="281.10714285714283" y="212.0" />
+      <point x="286.35714285714283" y="212.0" />
+      <point x="286.35714285714283" y="54.0" />
+      <point x="236.60714285714283" y="54.0" />
+      <point x="42.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.transformations.OneInputTransformation" target="org.apache.flink.streaming.api.transformations.PhysicalTransformation">
+      <point x="-66.49999999999997" y="-14.5" />
+      <point x="148.10714285714283" y="212.0" />
+      <point x="142.8571428571428" y="212.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="174.0" y="133.0" />
+  <SelectedNodes>
+    <node>org.apache.flink.streaming.api.transformations.OneInputTransformation</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

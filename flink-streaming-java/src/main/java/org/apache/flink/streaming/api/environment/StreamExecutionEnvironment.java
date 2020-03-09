@@ -1506,7 +1506,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james
+	 * by james.
 	 * 调用StreamGraphGenerator的generate()，生成StreamGraph
 	 * 继续调用execute(StreamGraph streamGraph)，生成JobExecutionResult
 	 */
@@ -1528,7 +1528,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james
+	 * by james.
 	 * StreamGraph -> JobExecutionResult
 	 */
 	/**
@@ -1618,6 +1618,10 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
+	 * by james.
+	 * StreamGraph -> JobExecutionResult
+	 */
+	/**
 	 * Triggers the program execution asynchronously. The environment will execute all parts of
 	 * the program that have resulted in a "sink" operation. Sink operations are
 	 * for example printing results or forwarding them to a message queue.
@@ -1639,6 +1643,10 @@ public class StreamExecutionEnvironment {
 			"Cannot find compatible factory for specified execution.target (=%s)",
 			configuration.get(DeploymentOptions.TARGET));
 
+		/**
+		 * add by james.
+		 * 异步生成JobClient，JobClient是获取Job结果的发起端
+		 */
 		CompletableFuture<JobClient> jobClientFuture = executorFactory
 			.getExecutor(configuration)
 			.execute(streamGraph, configuration);
@@ -1680,6 +1688,13 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
+	 * by james.
+	 * 通过getStreamGraphGenerator()，生成StreamGraphGenerator
+	 * 通过StreamGraphGenerator的generate()，生成StreamGraph
+	 * StreamGraph的getJobGraph(@Nullable JobID jobID)方法调用StreamingJobGraphGenerator的createJobGraph()方法，
+	 * 可以直接生成JobGraph。
+	 */
+	/**
 	 * Getter of the {@link org.apache.flink.streaming.api.graph.StreamGraph StreamGraph} of the streaming job
 	 * with the option to clear previously registered {@link Transformation transformations}. Clearing the
 	 * transformations allows, for example, to not re-execute the same operations when calling
@@ -1698,6 +1713,13 @@ public class StreamExecutionEnvironment {
 		return streamGraph;
 	}
 
+	/**
+	 * by james.
+	 * 参数transformations是需要StreamExecutionEnvironment在调用该方法前传入的
+	 * transformations是一个存放transformation的List
+	 * transformations是通过调用addOperator()方法，添加transformation元素的，如addSource()、addSink()
+	 * @return
+	 */
 	private StreamGraphGenerator getStreamGraphGenerator() {
 		if (transformations.size() <= 0) {
 			throw new IllegalStateException("No operators defined in streaming topology. Cannot execute.");
@@ -1735,6 +1757,13 @@ public class StreamExecutionEnvironment {
 		return f;
 	}
 
+	/**
+	 * by james.
+	 * 当addOperator()方法被调用时，会在StreamExecutionEnvironment的transformations会add对应的transformation
+	 * DataStream的addSink()方法会调用DataStreamSink的getTransformation()方法
+	 * 并非所有的Operator都有transformation，只有个别的Operator才有对应的transformation，如：Source, Sink, Union, Split
+	 * 详细说明，见org.apache.flink.api.dag.Transformation
+	 */
 	/**
 	 * Adds an operator to the list of operators that should be executed when calling
 	 * {@link #execute}.

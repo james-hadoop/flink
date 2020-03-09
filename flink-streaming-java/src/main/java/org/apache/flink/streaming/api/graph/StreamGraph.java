@@ -816,6 +816,10 @@ public class StreamGraph implements Pipeline {
 	}
 
 	/**
+	 * by james.
+	 * StreamGraph的createJobGraph()方法可以直接生成JobGraph
+	 */
+	/**
 	 * Gets the assembled {@link JobGraph} with a specified {@link JobID}.
 	 */
 	public JobGraph getJobGraph(@Nullable JobID jobID) {
