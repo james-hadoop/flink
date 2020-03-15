@@ -196,6 +196,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
+ * created by James on 2020-03-16 TEST JobMaster
+ */
+
+/**
  * Tests for {@link JobMaster}.
  */
 public class JobMasterTest extends TestLogger {
@@ -1872,7 +1876,8 @@ public class JobMasterTest extends TestLogger {
 			(localTaskManagerLocation, jobMasterGateway) -> jobMasterGateway.disconnectTaskManager(
 				localTaskManagerLocation.getResourceID(),
 				new FlinkException("Test disconnectTaskManager exception.")),
-			(jobMasterGateway, resourceID) -> (ignoredA, ignoredB) -> {});
+			(jobMasterGateway, resourceID) -> (ignoredA, ignoredB) -> {
+			});
 	}
 
 	@Test
@@ -1892,9 +1897,9 @@ public class JobMasterTest extends TestLogger {
 	}
 
 	private void runJobFailureWhenTaskExecutorTerminatesTest(
-			HeartbeatServices heartbeatServices,
-			BiConsumer<LocalTaskManagerLocation, JobMasterGateway> jobReachedRunningState,
-			BiFunction<JobMasterGateway, ResourceID, BiConsumer<ResourceID, AllocatedSlotReport>> heartbeatConsumerFunction) throws Exception {
+		HeartbeatServices heartbeatServices,
+		BiConsumer<LocalTaskManagerLocation, JobMasterGateway> jobReachedRunningState,
+		BiFunction<JobMasterGateway, ResourceID, BiConsumer<ResourceID, AllocatedSlotReport>> heartbeatConsumerFunction) throws Exception {
 		final JobGraph jobGraph = JobGraphTestUtils.createSingleVertexJobGraph();
 		final JobMasterBuilder.TestingOnCompletionActions onCompletionActions = new JobMasterBuilder.TestingOnCompletionActions();
 		final JobMaster jobMaster = createJobMaster(
@@ -1949,10 +1954,10 @@ public class JobMasterTest extends TestLogger {
 	}
 
 	private Collection<SlotOffer> registerSlotsAtJobMaster(
-			int numberSlots,
-			JobMasterGateway jobMasterGateway,
-			TaskExecutorGateway taskExecutorGateway,
-			TaskManagerLocation taskManagerLocation) throws ExecutionException, InterruptedException {
+		int numberSlots,
+		JobMasterGateway jobMasterGateway,
+		TaskExecutorGateway taskExecutorGateway,
+		TaskManagerLocation taskManagerLocation) throws ExecutionException, InterruptedException {
 		final AllocationIdsResourceManagerGateway allocationIdsResourceManagerGateway = new AllocationIdsResourceManagerGateway();
 		rpcService.registerGateway(allocationIdsResourceManagerGateway.getAddress(), allocationIdsResourceManagerGateway);
 		notifyResourceManagerLeaderListeners(allocationIdsResourceManagerGateway);
@@ -2072,10 +2077,10 @@ public class JobMasterTest extends TestLogger {
 
 	@Nonnull
 	private JobMaster createJobMaster(
-			Configuration configuration,
-			JobGraph jobGraph,
-			HighAvailabilityServices highAvailabilityServices,
-			JobManagerSharedServices jobManagerSharedServices) throws Exception {
+		Configuration configuration,
+		JobGraph jobGraph,
+		HighAvailabilityServices highAvailabilityServices,
+		JobManagerSharedServices jobManagerSharedServices) throws Exception {
 		return createJobMaster(
 			configuration,
 			jobGraph,
@@ -2086,11 +2091,11 @@ public class JobMasterTest extends TestLogger {
 
 	@Nonnull
 	private JobMaster createJobMaster(
-			Configuration configuration,
-			JobGraph jobGraph,
-			HighAvailabilityServices highAvailabilityServices,
-			JobManagerSharedServices jobManagerSharedServices,
-			HeartbeatServices heartbeatServices) throws Exception {
+		Configuration configuration,
+		JobGraph jobGraph,
+		HighAvailabilityServices highAvailabilityServices,
+		JobManagerSharedServices jobManagerSharedServices,
+		HeartbeatServices heartbeatServices) throws Exception {
 
 		return createJobMaster(
 			configuration,
@@ -2103,12 +2108,12 @@ public class JobMasterTest extends TestLogger {
 
 	@Nonnull
 	private JobMaster createJobMaster(
-			Configuration configuration,
-			JobGraph jobGraph,
-			HighAvailabilityServices highAvailabilityServices,
-			JobManagerSharedServices jobManagerSharedServices,
-			HeartbeatServices heartbeatServices,
-			OnCompletionActions onCompletionActions) throws Exception {
+		Configuration configuration,
+		JobGraph jobGraph,
+		HighAvailabilityServices highAvailabilityServices,
+		JobManagerSharedServices jobManagerSharedServices,
+		HeartbeatServices heartbeatServices,
+		OnCompletionActions onCompletionActions) throws Exception {
 
 		return new JobMasterBuilder(jobGraph, rpcService)
 			.withConfiguration(configuration)

@@ -4,6 +4,8 @@
 
 [StreamExecutionEnvironment](#StreamExecutionEnvironment)
 
+[JobMaster](#JobMaster)
+
 [Source](#Source)
 
 [source from Text file](#source-from-text-file)
@@ -29,9 +31,17 @@
 
 ### java.util.concurrent.CompletableFuture
 
+### java.util.function.Function
+
+### java.util.function.BiFunction
+
+### java.util.Objects
+
 ### java.lang.ClassLoader (used by org.apache.flink.core.execution.JobClient)
 
 ### java.lang.AutoCloseable
+
+
 
 -----
 
@@ -672,6 +682,204 @@ public class LocalExecutor implements PipelineExecutor {
 ***org.apache.flink.runtime.jobmaster.JobResult***
 
 <p>Job执行结果，通过toJobExecutionResult()方法，生成JobExecutionResult</p>
+
+<h3 id="MiniCluster">MiniCluster</h3>
+
+***org.apache.flink.runtime.minicluster.MiniCluster***
+
+<h3 id="MiniDispatcher">MiniDispatcher</h3>
+
+***org.apache.flink.runtime.dispatcher.MiniDispatcher***
+
+![MiniDispatcher](pic/MiniDispatcher.png)
+
+<h3 id="FencedRpcEndpoint">FencedRpcEndpoint</h3>
+
+***org.apache.flink.runtime.rpc.FencedRpcEndpoint***
+
+<h2 id=JobMaster>JobMaster</h2>
+
+***org.apache.flink.runtime.jobmaster.JobMaster***
+
+![JobMaster](pic/JobMaster.png)
+
+``` 
+/**
+ * created by James on 2020-03-16
+ * JobMaster负责执行JobGraph
+ */
+
+/**
+ * JobMaster implementation. The job master is responsible for the execution of a single
+ * {@link JobGraph}.
+ *
+ * <p>It offers the following methods as part of its rpc interface to interact with the JobMaster
+ * remotely:
+ * <ul>
+ * <li>{@link #updateTaskExecutionState} updates the task execution state for
+ * given task</li>
+ * </ul>
+ */
+public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMasterGateway, JobMasterService {
+
+	/**
+	 * Default names for Flink's distributed components.
+	 */
+	public static final String JOB_MANAGER_NAME = "jobmanager";
+
+	// ------------------------------------------------------------------------
+
+	private final JobMasterConfiguration jobMasterConfiguration;
+
+	private final ResourceID resourceId;
+
+	private final JobGraph jobGraph;
+
+	private final Time rpcTimeout;
+
+	private final HighAvailabilityServices highAvailabilityServices;
+
+	private final BlobWriter blobWriter;
+
+	private final HeartbeatServices heartbeatServices;
+
+	private final JobManagerJobMetricGroupFactory jobMetricGroupFactory;
+
+	private final ScheduledExecutorService scheduledExecutorService;
+
+	private final OnCompletionActions jobCompletionActions;
+
+	private final FatalErrorHandler fatalErrorHandler;
+
+	private final ClassLoader userCodeLoader;
+
+	private final SlotPool slotPool;
+
+	private final Scheduler scheduler;
+
+	private final SchedulerNGFactory schedulerNGFactory;
+
+	// --------- BackPressure --------
+
+	private final BackPressureStatsTracker backPressureStatsTracker;
+
+	// --------- ResourceManager --------
+
+	private final LeaderRetrievalService resourceManagerLeaderRetriever;
+
+	// --------- TaskManagers --------
+
+	private final Map<ResourceID, Tuple2<TaskManagerLocation, TaskExecutorGateway>> registeredTaskManagers;
+
+	private final ShuffleMaster<?> shuffleMaster;
+
+	// -------- Mutable fields ---------
+
+	private HeartbeatManager<AccumulatorReport, AllocatedSlotReport> taskManagerHeartbeatManager;
+
+	private HeartbeatManager<Void, Void> resourceManagerHeartbeatManager;
+
+	private SchedulerNG schedulerNG;
+
+	@Nullable
+	private JobManagerJobStatusListener jobStatusListener;
+
+	@Nullable
+	private JobManagerJobMetricGroup jobManagerJobMetricGroup;
+
+	@Nullable
+	private ResourceManagerAddress resourceManagerAddress;
+
+	@Nullable
+	private ResourceManagerConnection resourceManagerConnection;
+
+	@Nullable
+	private EstablishedResourceManagerConnection establishedResourceManagerConnection;
+
+	private Map<String, Object> accumulators;
+
+	private final JobMasterPartitionTracker partitionTracker;
+
+	// ------------------------------------------------------------------------
+
+	public JobMaster(
+		RpcService rpcService,
+		JobMasterConfiguration jobMasterConfiguration,
+		ResourceID resourceId,
+		JobGraph jobGraph,
+		HighAvailabilityServices highAvailabilityService,
+		SlotPoolFactory slotPoolFactory,
+		SchedulerFactory schedulerFactory,
+		JobManagerSharedServices jobManagerSharedServices,
+		HeartbeatServices heartbeatServices,
+		JobManagerJobMetricGroupFactory jobMetricGroupFactory,
+		OnCompletionActions jobCompletionActions,
+		FatalErrorHandler fatalErrorHandler,
+		ClassLoader userCodeLoader,
+		SchedulerNGFactory schedulerNGFactory,
+		ShuffleMaster<?> shuffleMaster,
+		PartitionTrackerFactory partitionTrackerFactory) throws Exception {
+
+		super(rpcService, AkkaRpcServiceUtils.createRandomName(JOB_MANAGER_NAME), null);
+
+		this.jobMasterConfiguration = checkNotNull(jobMasterConfiguration);
+		this.resourceId = checkNotNull(resourceId);
+		this.jobGraph = checkNotNull(jobGraph);
+		this.rpcTimeout = jobMasterConfiguration.getRpcTimeout();
+		this.highAvailabilityServices = checkNotNull(highAvailabilityService);
+		this.blobWriter = jobManagerSharedServices.getBlobWriter();
+		this.scheduledExecutorService = jobManagerSharedServices.getScheduledExecutorService();
+		this.jobCompletionActions = checkNotNull(jobCompletionActions);
+		this.fatalErrorHandler = checkNotNull(fatalErrorHandler);
+		this.userCodeLoader = checkNotNull(userCodeLoader);
+		this.schedulerNGFactory = checkNotNull(schedulerNGFactory);
+		this.heartbeatServices = checkNotNull(heartbeatServices);
+		this.jobMetricGroupFactory = checkNotNull(jobMetricGroupFactory);
+
+		final String jobName = jobGraph.getName();
+		final JobID jid = jobGraph.getJobID();
+
+		log.info("Initializing job {} ({}).", jobName, jid);
+
+		resourceManagerLeaderRetriever = highAvailabilityServices.getResourceManagerLeaderRetriever();
+
+		this.slotPool = checkNotNull(slotPoolFactory).createSlotPool(jobGraph.getJobID());
+
+		this.scheduler = checkNotNull(schedulerFactory).createScheduler(slotPool);
+
+		this.registeredTaskManagers = new HashMap<>(4);
+		this.partitionTracker = checkNotNull(partitionTrackerFactory)
+			.create(resourceID -> {
+				Tuple2<TaskManagerLocation, TaskExecutorGateway> taskManagerInfo = registeredTaskManagers.get(resourceID);
+				if (taskManagerInfo == null) {
+					return Optional.empty();
+				}
+
+				return Optional.of(taskManagerInfo.f1);
+			});
+
+		this.backPressureStatsTracker = checkNotNull(jobManagerSharedServices.getBackPressureStatsTracker());
+
+		this.shuffleMaster = checkNotNull(shuffleMaster);
+
+		this.jobManagerJobMetricGroup = jobMetricGroupFactory.create(jobGraph);
+		this.schedulerNG = createScheduler(jobManagerJobMetricGroup);
+		this.jobStatusListener = null;
+
+		this.resourceManagerConnection = null;
+		this.establishedResourceManagerConnection = null;
+
+		this.accumulators = new HashMap<>();
+		this.taskManagerHeartbeatManager = NoOpHeartbeatManager.getInstance();
+		this.resourceManagerHeartbeatManager = NoOpHeartbeatManager.getInstance();
+	}
+	
+......
+
+}	
+```
+
+
 
 
 <h2 id="Source">Source</h2>

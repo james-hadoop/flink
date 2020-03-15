@@ -113,6 +113,10 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
+ * created by James on 2020-03-16
+ * 本地执行Flink Job的地方
+ */
+/**
  * MiniCluster to execute Flink jobs locally.
  */
 public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
@@ -666,6 +670,11 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 		final CompletableFuture<DispatcherGateway> dispatcherGatewayFuture = getDispatcherGatewayFuture();
 		final CompletableFuture<InetSocketAddress> blobServerAddressFuture = createBlobServerAddress(dispatcherGatewayFuture);
 		final CompletableFuture<Void> jarUploadFuture = uploadAndSetJobFiles(blobServerAddressFuture, jobGraph);
+
+		/**
+		 * created by James on 2020-03-15
+		 * 提交JobGraph
+		 */
 		final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = jarUploadFuture
 			.thenCombine(
 				dispatcherGatewayFuture,

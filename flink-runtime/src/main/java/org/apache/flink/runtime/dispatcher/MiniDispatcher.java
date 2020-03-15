@@ -52,12 +52,12 @@ public class MiniDispatcher extends Dispatcher {
 	private final JobClusterEntrypoint.ExecutionMode executionMode;
 
 	public MiniDispatcher(
-			RpcService rpcService,
-			String endpointId,
-			DispatcherId fencingToken,
-			DispatcherServices dispatcherServices,
-			JobGraph jobGraph,
-			JobClusterEntrypoint.ExecutionMode executionMode) throws Exception {
+		RpcService rpcService,
+		String endpointId,
+		DispatcherId fencingToken,
+		DispatcherServices dispatcherServices,
+		JobGraph jobGraph,
+		JobClusterEntrypoint.ExecutionMode executionMode) throws Exception {
 		super(
 			rpcService,
 			endpointId,
@@ -68,6 +68,10 @@ public class MiniDispatcher extends Dispatcher {
 		this.executionMode = checkNotNull(executionMode);
 	}
 
+	/**
+	 * created by James on 2020-03-15
+	 * MiniCluster的Dispatcher，MiniDispatcher
+	 */
 	@Override
 	public CompletableFuture<Acknowledge> submitJob(JobGraph jobGraph, Time timeout) {
 		final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = super.submitJob(jobGraph, timeout);
@@ -92,7 +96,7 @@ public class MiniDispatcher extends Dispatcher {
 			// terminate the MiniDispatcher once we served the first JobResult successfully
 			jobResultFuture.thenAccept((JobResult result) -> {
 				ApplicationStatus status = result.getSerializedThrowable().isPresent() ?
-						ApplicationStatus.FAILED : ApplicationStatus.SUCCEEDED;
+					ApplicationStatus.FAILED : ApplicationStatus.SUCCEEDED;
 
 				LOG.debug("Shutting down per-job cluster because someone retrieved the job result.");
 				shutDownFuture.complete(status);
@@ -106,7 +110,7 @@ public class MiniDispatcher extends Dispatcher {
 
 	@Override
 	public CompletableFuture<Acknowledge> cancelJob(
-			JobID jobId, Time timeout) {
+		JobID jobId, Time timeout) {
 		CompletableFuture<Acknowledge> cancelFuture = super.cancelJob(jobId, timeout);
 
 		cancelFuture.thenAccept((ignored) -> {

@@ -55,6 +55,10 @@ public abstract class FencedRpcEndpoint<F extends Serializable> extends RpcEndpo
 		// no fencing token == no leadership
 		this.fencingToken = fencingToken;
 		this.unfencedMainThreadExecutor = new UnfencedMainThreadExecutor((FencedMainThreadExecutable) rpcServer);
+		/**
+		 * created by James on 2020-03-16
+		 * new MainThreadExecutor()， 传入getRpcService()的fenceRpcServer()方法
+		 */
 		this.fencedMainThreadExecutor = new MainThreadExecutor(
 			getRpcService().fenceRpcServer(
 				rpcServer,
@@ -122,6 +126,10 @@ public abstract class FencedRpcEndpoint<F extends Serializable> extends RpcEndpo
 		}
 	}
 
+	/**
+	 * created by James on 2020-03-16
+	 * 被JobMaster调用
+	 */
 	/**
 	 * Run the given callable in the main thread of the RpcEndpoint without checking the fencing
 	 * token. This allows to run operations outside of the fencing token scope.

@@ -258,6 +258,10 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 		ExceptionUtils.tryRethrowException(exception);
 	}
 
+	/**
+	 * created by James on 2020-03-15
+	 * 被MiniDispatcher调用，判断完异常之后，调用internalSubmitJob(jobGraph)方法
+	 */
 	//------------------------------------------------------
 	// RPCs
 	//------------------------------------------------------
@@ -320,6 +324,11 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 		return false;
 	}
 
+	/**
+	 * created by James on 2020-03-16
+	 * MiniCluter上提交JobGraph的实际执行的地方
+	 * 通过waitForTerminatingJobManager()方法，与JobManager交互
+	 */
 	private CompletableFuture<Acknowledge> internalSubmitJob(JobGraph jobGraph) {
 		log.info("Submitting job {} ({}).", jobGraph.getJobID(), jobGraph.getName());
 
@@ -820,6 +829,10 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 		return optionalJobInformation;
 	}
 
+	/**
+	 * created by James on 2020-03-16
+	 * 调用getMainThreadExecutor()
+	 */
 	private CompletableFuture<Void> waitForTerminatingJobManager(JobID jobId, JobGraph jobGraph, FunctionWithException<JobGraph, CompletableFuture<Void>, ?> action) {
 		final CompletableFuture<Void> jobManagerTerminationFuture = getJobTerminationFuture(jobId)
 			.exceptionally((Throwable throwable) -> {
