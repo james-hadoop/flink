@@ -31,6 +31,8 @@
 
 ### java.lang.ClassLoader (used by org.apache.flink.core.execution.JobClient)
 
+### java.lang.AutoCloseable
+
 -----
 
 
@@ -608,6 +610,69 @@ public final class FlinkPipelineTranslationUtil {
 
 }
 ```
+
+<h3 id="LocalExecutor">LocalExecutor</h3>
+
+***org.apache.flink.client.deployment.executors.LocalExecutor***
+
+``` 
+/**
+ * by james
+ * 本地job执行时的PipelineExecutor
+ * Pipeline的子类是Plan以及StreamGraph
+ */
+
+/**
+ * An {@link PipelineExecutor} for executing a {@link Pipeline} locally.
+ */
+@Internal
+public class LocalExecutor implements PipelineExecutor {
+
+	public static final String NAME = "local";
+
+	@Override
+	public CompletableFuture<JobClient> execute(Pipeline pipeline, Configuration configuration) throws Exception {
+		checkNotNull(pipeline);
+		checkNotNull(configuration);
+
+		// we only support attached execution with the local executor.
+		checkState(configuration.getBoolean(DeploymentOptions.ATTACHED));
+
+		/**
+		 * by james
+		 * 生成JobGraph
+		 */
+		final JobGraph jobGraph = getJobGraph(pipeline, configuration);
+		/**
+		 * by james
+		 * MiniCluster是本地Flink的执行环境
+		 */
+		final MiniCluster miniCluster = startMiniCluster(jobGraph, configuration);
+		final MiniClusterClient clusterClient = new MiniClusterClient(configuration, miniCluster);
+
+		CompletableFuture<JobID> jobIdFuture = clusterClient.submitJob(jobGraph);
+
+		jobIdFuture
+			.thenCompose(clusterClient::requestJobResult)
+			.thenAccept((jobResult) -> clusterClient.shutDownCluster());
+
+		return jobIdFuture.thenApply(jobID ->
+			new ClusterClientJobClientAdapter<>(() -> clusterClient, jobID));
+	}
+	
+......
+
+}	
+```
+
+<p><span style="color: #dc143c; ">MiniCluster、MiniClusterClient</span>是本地集群以及本地JobClient。</p>
+
+<h3 id="JobResult">JobResult</h3>
+
+***org.apache.flink.runtime.jobmaster.JobResult***
+
+<p>Job执行结果，通过toJobExecutionResult()方法，生成JobExecutionResult</p>
+
 
 <h2 id="Source">Source</h2>
 
@@ -2657,7 +2722,7 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 ***org.apache.flink.runtime.memory.MemoryManager***
 
-```java
+```
 /**
  * The memory manager governs the memory that Flink uses for sorting, hashing, and caching. Memory is represented
  * either in {@link MemorySegment}s of equal size and arbitrary type or in reserved chunks of certain size and {@link MemoryType}.

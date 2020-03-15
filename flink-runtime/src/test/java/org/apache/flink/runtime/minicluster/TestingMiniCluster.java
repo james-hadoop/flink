@@ -43,6 +43,10 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 /**
+ * Created by James on 2020-03-15
+ */
+
+/**
  * {@link MiniCluster} extension which allows to set a custom {@link HighAvailabilityServices}.
  */
 public class TestingMiniCluster extends MiniCluster {
@@ -55,8 +59,8 @@ public class TestingMiniCluster extends MiniCluster {
 	private final Supplier<HighAvailabilityServices> highAvailabilityServicesSupplier;
 
 	public TestingMiniCluster(
-			TestingMiniClusterConfiguration miniClusterConfiguration,
-			@Nullable Supplier<HighAvailabilityServices> highAvailabilityServicesSupplier) {
+		TestingMiniClusterConfiguration miniClusterConfiguration,
+		@Nullable Supplier<HighAvailabilityServices> highAvailabilityServicesSupplier) {
 		super(miniClusterConfiguration);
 		this.numberDispatcherResourceManagerComponents = miniClusterConfiguration.getNumberDispatcherResourceManagerComponents();
 		this.highAvailabilityServicesSupplier = highAvailabilityServicesSupplier;
@@ -94,14 +98,14 @@ public class TestingMiniCluster extends MiniCluster {
 
 	@Override
 	protected Collection<? extends DispatcherResourceManagerComponent> createDispatcherResourceManagerComponents(
-			Configuration configuration,
-			RpcServiceFactory rpcServiceFactory,
-			HighAvailabilityServices haServices,
-			BlobServer blobServer,
-			HeartbeatServices heartbeatServices,
-			MetricRegistry metricRegistry,
-			MetricQueryServiceRetriever metricQueryServiceRetriever,
-			FatalErrorHandler fatalErrorHandler) throws Exception {
+		Configuration configuration,
+		RpcServiceFactory rpcServiceFactory,
+		HighAvailabilityServices haServices,
+		BlobServer blobServer,
+		HeartbeatServices heartbeatServices,
+		MetricRegistry metricRegistry,
+		MetricQueryServiceRetriever metricQueryServiceRetriever,
+		FatalErrorHandler fatalErrorHandler) throws Exception {
 		DispatcherResourceManagerComponentFactory dispatcherResourceManagerComponentFactory = createTestingDispatcherResourceManagerComponentFactory();
 
 		final List<DispatcherResourceManagerComponent> result = new ArrayList<>(numberDispatcherResourceManagerComponents);

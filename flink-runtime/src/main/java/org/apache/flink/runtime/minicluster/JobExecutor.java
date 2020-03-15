@@ -23,6 +23,11 @@ import org.apache.flink.runtime.client.JobExecutionException;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
 /**
+ * by james
+ * JobGraph -> JobExecutionResult
+ */
+
+/**
  * Interface for {@link JobGraph} executors.
  */
 public interface JobExecutor {

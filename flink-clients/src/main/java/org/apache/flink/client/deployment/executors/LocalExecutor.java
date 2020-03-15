@@ -44,7 +44,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
- * by james
+ * created by James on 2020-03-15
  * 本地job执行时的PipelineExecutor
  * Pipeline的子类是Plan以及StreamGraph
  */
@@ -127,6 +127,10 @@ public class LocalExecutor implements PipelineExecutor {
 				.setNumSlotsPerTaskManager(numSlotsPerTaskManager)
 				.build();
 
+		/**
+		 * by james
+		 * new MiniCluster并启动
+		 */
 		final MiniCluster miniCluster = new MiniCluster(miniClusterConfiguration);
 		miniCluster.start();
 

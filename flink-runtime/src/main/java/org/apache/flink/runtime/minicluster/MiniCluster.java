@@ -119,10 +119,14 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MiniCluster.class);
 
-	/** The lock to guard startup / shutdown / manipulation methods. */
+	/**
+	 * The lock to guard startup / shutdown / manipulation methods.
+	 */
 	private final Object lock = new Object();
 
-	/** The configuration for this mini cluster. */
+	/**
+	 * The configuration for this mini cluster.
+	 */
 	private final MiniClusterConfiguration miniClusterConfiguration;
 
 	private final Time rpcTimeout;
@@ -185,7 +189,9 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	@GuardedBy("lock")
 	private RpcServiceFactory taskManagerRpcServiceFactory;
 
-	/** Flag marking the mini cluster as started/running. */
+	/**
+	 * Flag marking the mini cluster as started/running.
+	 */
 	private volatile boolean running;
 
 	// ------------------------------------------------------------------------
@@ -334,8 +340,7 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 				resourceManagerLeaderRetriever.start(resourceManagerGatewayRetriever);
 				dispatcherLeaderRetriever.start(dispatcherGatewayRetriever);
 				clusterRestEndpointLeaderRetrievalService.start(webMonitorLeaderRetriever);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				// cleanup everything
 				try {
 					close();
@@ -381,14 +386,14 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 
 	@VisibleForTesting
 	protected Collection<? extends DispatcherResourceManagerComponent> createDispatcherResourceManagerComponents(
-			Configuration configuration,
-			RpcServiceFactory rpcServiceFactory,
-			HighAvailabilityServices haServices,
-			BlobServer blobServer,
-			HeartbeatServices heartbeatServices,
-			MetricRegistry metricRegistry,
-			MetricQueryServiceRetriever metricQueryServiceRetriever,
-			FatalErrorHandler fatalErrorHandler) throws Exception {
+		Configuration configuration,
+		RpcServiceFactory rpcServiceFactory,
+		HighAvailabilityServices haServices,
+		BlobServer blobServer,
+		HeartbeatServices heartbeatServices,
+		MetricRegistry metricRegistry,
+		MetricQueryServiceRetriever metricQueryServiceRetriever,
+		FatalErrorHandler fatalErrorHandler) throws Exception {
 		DispatcherResourceManagerComponentFactory dispatcherResourceManagerComponentFactory = createDispatcherResourceManagerComponentFactory();
 		return Collections.singleton(
 			dispatcherResourceManagerComponentFactory.create(
@@ -459,13 +464,13 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 						() -> terminateExecutors(shutdownTimeoutMillis));
 
 					executorsTerminationFuture.whenComplete(
-							(Void ignored, Throwable throwable) -> {
-								if (throwable != null) {
-									terminationFuture.completeExceptionally(ExceptionUtils.stripCompletionException(throwable));
-								} else {
-									terminationFuture.complete(null);
-								}
-							});
+						(Void ignored, Throwable throwable) -> {
+							if (throwable != null) {
+								terminationFuture.completeExceptionally(ExceptionUtils.stripCompletionException(throwable));
+							} else {
+								terminationFuture.complete(null);
+							}
+						});
 				} finally {
 					running = false;
 				}
@@ -600,10 +605,9 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	 * This method executes a job in detached mode. The method returns immediately after the job
 	 * has been added to the
 	 *
-	 * @param job  The Flink job to execute
-	 *
+	 * @param job The Flink job to execute
 	 * @throws JobExecutionException Thrown if anything went amiss during initial job launch,
-	 *         or if the job terminally failed.
+	 *                               or if the job terminally failed.
 	 */
 	public void runDetached(JobGraph job) throws JobExecutionException, InterruptedException {
 		checkNotNull(job, "job is null");
@@ -621,16 +625,19 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	 * This method runs a job in blocking mode. The method returns only after the job
 	 * completed successfully, or after it failed terminally.
 	 *
-	 * @param job  The Flink job to execute
+	 * @param job The Flink job to execute
 	 * @return The result of the job execution
-	 *
 	 * @throws JobExecutionException Thrown if anything went amiss during initial job launch,
-	 *         or if the job terminally failed.
+	 *                               or if the job terminally failed.
 	 */
 	@Override
 	public JobExecutionResult executeJobBlocking(JobGraph job) throws JobExecutionException, InterruptedException {
 		checkNotNull(job, "job is null");
 
+		/**
+		 * created by James on 2020-03-15
+		 * submitJob(job)方法，提交Job，生成JobSubmissionResult
+		 */
 		final CompletableFuture<JobSubmissionResult> submissionFuture = submitJob(job);
 
 		final CompletableFuture<JobResult> jobResultFuture = submissionFuture.thenCompose(
@@ -651,6 +658,10 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 		}
 	}
 
+	/**
+	 * created by James on 2020-03-15
+	 * 提交JobGraph，生成JobSubmissionResult
+	 */
 	public CompletableFuture<JobSubmissionResult> submitJob(JobGraph jobGraph) {
 		final CompletableFuture<DispatcherGateway> dispatcherGatewayFuture = getDispatcherGatewayFuture();
 		final CompletableFuture<InetSocketAddress> blobServerAddressFuture = createBlobServerAddress(dispatcherGatewayFuture);
@@ -692,9 +703,9 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 
 	private CompletableFuture<InetSocketAddress> createBlobServerAddress(final CompletableFuture<DispatcherGateway> dispatcherGatewayFuture) {
 		return dispatcherGatewayFuture.thenApply(dispatcherGateway ->
-				dispatcherGateway
-					.getBlobServerPort(rpcTimeout)
-					.thenApply(blobServerPort -> new InetSocketAddress(dispatcherGateway.getHostname(), blobServerPort)))
+			dispatcherGateway
+				.getBlobServerPort(rpcTimeout)
+				.thenApply(blobServerPort -> new InetSocketAddress(dispatcherGateway.getHostname(), blobServerPort)))
 			.thenCompose(Function.identity());
 	}
 
@@ -716,19 +727,15 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	/**
 	 * Factory method to instantiate the RPC service.
 	 *
-	 * @param akkaRpcServiceConfig
-	 *            The default RPC timeout for asynchronous "ask" requests.
-	 * @param remoteEnabled
-	 *            True, if the RPC service should be reachable from other (remote) RPC services.
-	 * @param bindAddress
-	 *            The address to bind the RPC service to. Only relevant when "remoteEnabled" is true.
-	 *
+	 * @param akkaRpcServiceConfig The default RPC timeout for asynchronous "ask" requests.
+	 * @param remoteEnabled        True, if the RPC service should be reachable from other (remote) RPC services.
+	 * @param bindAddress          The address to bind the RPC service to. Only relevant when "remoteEnabled" is true.
 	 * @return The instantiated RPC service
 	 */
 	protected RpcService createRpcService(
-			AkkaRpcServiceConfiguration akkaRpcServiceConfig,
-			boolean remoteEnabled,
-			String bindAddress) {
+		AkkaRpcServiceConfiguration akkaRpcServiceConfig,
+		boolean remoteEnabled,
+		String bindAddress) {
 
 		final Config akkaConfig;
 

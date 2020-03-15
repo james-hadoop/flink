@@ -45,6 +45,10 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+/** by james
+ * Job执行结果，通过toJobExecutionResult()方法，生成JobExecutionResult
+ */
+
 /**
  * Similar to {@link org.apache.flink.api.common.JobExecutionResult} but with an optional
  * {@link SerializedThrowable} when the job failed.
