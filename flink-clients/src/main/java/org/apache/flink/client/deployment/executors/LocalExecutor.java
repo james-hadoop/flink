@@ -44,6 +44,12 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
+ * by james
+ * 本地job执行时的PipelineExecutor
+ * Pipeline的子类是Plan以及StreamGraph
+ */
+
+/**
  * An {@link PipelineExecutor} for executing a {@link Pipeline} locally.
  */
 @Internal
@@ -59,18 +65,26 @@ public class LocalExecutor implements PipelineExecutor {
 		// we only support attached execution with the local executor.
 		checkState(configuration.getBoolean(DeploymentOptions.ATTACHED));
 
+		/**
+		 * by james
+		 * 生成JobGraph
+		 */
 		final JobGraph jobGraph = getJobGraph(pipeline, configuration);
+		/**
+		 * by james
+		 * MiniCluster是本地Flink的执行环境
+		 */
 		final MiniCluster miniCluster = startMiniCluster(jobGraph, configuration);
 		final MiniClusterClient clusterClient = new MiniClusterClient(configuration, miniCluster);
 
 		CompletableFuture<JobID> jobIdFuture = clusterClient.submitJob(jobGraph);
 
 		jobIdFuture
-				.thenCompose(clusterClient::requestJobResult)
-				.thenAccept((jobResult) -> clusterClient.shutDownCluster());
+			.thenCompose(clusterClient::requestJobResult)
+			.thenAccept((jobResult) -> clusterClient.shutDownCluster());
 
 		return jobIdFuture.thenApply(jobID ->
-				new ClusterClientJobClientAdapter<>(() -> clusterClient, jobID));
+			new ClusterClientJobClientAdapter<>(() -> clusterClient, jobID));
 	}
 
 	private JobGraph getJobGraph(Pipeline pipeline, Configuration configuration) {
@@ -80,9 +94,9 @@ public class LocalExecutor implements PipelineExecutor {
 		if (pipeline instanceof Plan) {
 			Plan plan = (Plan) pipeline;
 			final int slotsPerTaskManager = configuration.getInteger(
-					TaskManagerOptions.NUM_TASK_SLOTS, plan.getMaximumParallelism());
+				TaskManagerOptions.NUM_TASK_SLOTS, plan.getMaximumParallelism());
 			final int numTaskManagers = configuration.getInteger(
-					ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, 1);
+				ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, 1);
 
 			plan.setDefaultParallelism(slotsPerTaskManager * numTaskManagers);
 		}
@@ -96,22 +110,22 @@ public class LocalExecutor implements PipelineExecutor {
 		}
 
 		int numTaskManagers = configuration.getInteger(
-				ConfigConstants.LOCAL_NUMBER_TASK_MANAGER,
-				ConfigConstants.DEFAULT_LOCAL_NUMBER_TASK_MANAGER);
+			ConfigConstants.LOCAL_NUMBER_TASK_MANAGER,
+			ConfigConstants.DEFAULT_LOCAL_NUMBER_TASK_MANAGER);
 
 		// we have to use the maximum parallelism as a default here, otherwise streaming
 		// pipelines would not run
 		int numSlotsPerTaskManager = configuration.getInteger(
-				TaskManagerOptions.NUM_TASK_SLOTS,
-				jobGraph.getMaximumParallelism());
+			TaskManagerOptions.NUM_TASK_SLOTS,
+			jobGraph.getMaximumParallelism());
 
 		final MiniClusterConfiguration miniClusterConfiguration =
-				new MiniClusterConfiguration.Builder()
-						.setConfiguration(configuration)
-						.setNumTaskManagers(numTaskManagers)
-						.setRpcServiceSharing(RpcServiceSharing.SHARED)
-						.setNumSlotsPerTaskManager(numSlotsPerTaskManager)
-						.build();
+			new MiniClusterConfiguration.Builder()
+				.setConfiguration(configuration)
+				.setNumTaskManagers(numTaskManagers)
+				.setRpcServiceSharing(RpcServiceSharing.SHARED)
+				.setNumSlotsPerTaskManager(numSlotsPerTaskManager)
+				.build();
 
 		final MiniCluster miniCluster = new MiniCluster(miniClusterConfiguration);
 		miniCluster.start();

@@ -29,6 +29,11 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * by james
+ * JobClient的getJobExecutionResult()方法使用了ClassLoader userClassloader
+ */
+
+/**
  * A client that is scoped to a specific job.
  */
 @PublicEvolving

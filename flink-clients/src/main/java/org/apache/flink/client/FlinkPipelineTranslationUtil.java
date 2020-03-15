@@ -24,6 +24,11 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
 /**
+ * by james
+ * 根据Pipleline，生成JobGraph。StreamGraph是一种Pipeline
+ */
+
+/**
  * Utility for transforming {@link Pipeline FlinkPipelines} into a {@link JobGraph}. This uses
  * reflection or service discovery to find the right {@link FlinkPipelineTranslator} for a given
  * subclass of {@link Pipeline}.
@@ -31,18 +36,22 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 public final class FlinkPipelineTranslationUtil {
 
 	/**
+	 * by james
+	 * 把Pipeline翻译成JobGraph
+	 */
+	/**
 	 * Transmogrifies the given {@link Pipeline} to a {@link JobGraph}.
 	 */
 	public static JobGraph getJobGraph(
-			Pipeline pipeline,
-			Configuration optimizerConfiguration,
-			int defaultParallelism) {
+		Pipeline pipeline,
+		Configuration optimizerConfiguration,
+		int defaultParallelism) {
 
 		FlinkPipelineTranslator pipelineTranslator = getPipelineTranslator(pipeline);
 
 		return pipelineTranslator.translateToJobGraph(pipeline,
-				optimizerConfiguration,
-				defaultParallelism);
+			optimizerConfiguration,
+			defaultParallelism);
 	}
 
 	/**
@@ -64,7 +73,7 @@ public final class FlinkPipelineTranslationUtil {
 
 		if (!streamGraphTranslator.canTranslate(pipeline)) {
 			throw new RuntimeException("Translator " + streamGraphTranslator + " cannot translate "
-					+ "the given pipeline " + pipeline + ".");
+				+ "the given pipeline " + pipeline + ".");
 		}
 		return streamGraphTranslator;
 	}
@@ -79,9 +88,9 @@ public final class FlinkPipelineTranslationUtil {
 		Class<?> streamGraphTranslatorClass;
 		try {
 			streamGraphTranslatorClass = Class.forName(
-					"org.apache.flink.streaming.api.graph.StreamGraphTranslator",
-					true,
-					FlinkPipelineTranslationUtil.class.getClassLoader());
+				"org.apache.flink.streaming.api.graph.StreamGraphTranslator",
+				true,
+				FlinkPipelineTranslationUtil.class.getClassLoader());
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("Could not load StreamGraphTranslator.", e);
 		}
@@ -89,7 +98,7 @@ public final class FlinkPipelineTranslationUtil {
 		FlinkPipelineTranslator streamGraphTranslator;
 		try {
 			streamGraphTranslator =
-					(FlinkPipelineTranslator) streamGraphTranslatorClass.newInstance();
+				(FlinkPipelineTranslator) streamGraphTranslatorClass.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new RuntimeException("Could not instantiate StreamGraphTranslator.", e);
 		}

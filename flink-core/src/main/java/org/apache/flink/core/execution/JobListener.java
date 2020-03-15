@@ -24,6 +24,11 @@ import org.apache.flink.api.common.JobExecutionResult;
 import javax.annotation.Nullable;
 
 /**
+ * by james
+ * 监听Job的提交以及执行行为
+ */
+
+/**
  * A listener that is notified on specific job status changed, which should be firstly
  * registered by {@code #registerJobListener} of execution environments.
  *

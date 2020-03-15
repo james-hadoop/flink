@@ -1490,6 +1490,9 @@ public class StreamExecutionEnvironment {
 		return new DataStreamSource<>(this, typeInfo, sourceOperator, isParallel, sourceName);
 	}
 
+	/** by james
+	 *  起点（开始）
+	 */
 	/**
 	 * Triggers the program execution. The environment will execute all parts of
 	 * the program that have resulted in a "sink" operation. Sink operations are
@@ -1529,7 +1532,7 @@ public class StreamExecutionEnvironment {
 
 	/**
 	 * by james.
-	 * StreamGraph -> JobExecutionResult
+	 * StreamGraph -> JobGraph -> JobClient -> JobExecutionResult
 	 */
 	/**
 	 * Triggers the program execution. The environment will execute all parts of
@@ -1553,6 +1556,10 @@ public class StreamExecutionEnvironment {
 				jobExecutionResult = new DetachedJobExecutionResult(jobClient.getJobID());
 			}
 
+			/**
+			 * by james
+			 * Job执行完毕
+			 */
 			jobListeners.forEach(jobListener -> jobListener.onJobExecuted(jobExecutionResult, null));
 
 			return jobExecutionResult;
@@ -1635,6 +1642,10 @@ public class StreamExecutionEnvironment {
 		checkNotNull(streamGraph, "StreamGraph cannot be null.");
 		checkNotNull(configuration.get(DeploymentOptions.TARGET), "No execution.target specified in your configuration file.");
 
+		/**
+		 * by james
+		 * 根据配置信息，生成PipelineExecutorFactory
+		 */
 		final PipelineExecutorFactory executorFactory =
 			executorServiceLoader.getExecutorFactory(configuration);
 
@@ -1644,8 +1655,9 @@ public class StreamExecutionEnvironment {
 			configuration.get(DeploymentOptions.TARGET));
 
 		/**
-		 * add by james.
+		 * by james.
 		 * 异步生成JobClient，JobClient是获取Job结果的发起端
+		 * 见本地PipelineExecutor：org.apache.flink.client.deployment.executors.LocalExecutor
 		 */
 		CompletableFuture<JobClient> jobClientFuture = executorFactory
 			.getExecutor(configuration)
@@ -1653,6 +1665,10 @@ public class StreamExecutionEnvironment {
 
 		try {
 			JobClient jobClient = jobClientFuture.get();
+			/**
+			 * by james
+			 * Job提交完毕
+			 */
 			jobListeners.forEach(jobListener -> jobListener.onJobSubmitted(jobClient, null));
 			return jobClient;
 		} catch (Throwable t) {
@@ -1718,6 +1734,7 @@ public class StreamExecutionEnvironment {
 	 * 参数transformations是需要StreamExecutionEnvironment在调用该方法前传入的
 	 * transformations是一个存放transformation的List
 	 * transformations是通过调用addOperator()方法，添加transformation元素的，如addSource()、addSink()
+	 *
 	 * @return
 	 */
 	private StreamGraphGenerator getStreamGraphGenerator() {

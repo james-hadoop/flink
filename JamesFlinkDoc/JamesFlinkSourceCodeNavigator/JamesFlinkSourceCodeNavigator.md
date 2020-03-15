@@ -19,7 +19,19 @@
 [Sink](#Sink)
 
 
--------------
+-----
+
+<h2 id="Knowledge">Knowledge</h2>
+
+### java.util.ServiceLoader
+
+### java.util.stream.Stream 
+
+### java.util.concurrent.CompletableFuture
+
+### java.lang.ClassLoader (used by org.apache.flink.core.execution.JobClient)
+
+-----
 
 
 
@@ -567,11 +579,42 @@ public class StreamingJobGraphGenerator {
 
 ![StreamGraph_getJobGraph()](pic/StreamGraph_getJobGraph().png)
 
+<p>StreamGraph -> JobGraph的过程在<span style="color: #dc143c; ">org.apache.flink.client.FlinkPipelineTranslationUtil</span>中完成。</p>
+
+```
+/**
+ * Utility for transforming {@link Pipeline FlinkPipelines} into a {@link JobGraph}. This uses
+ * reflection or service discovery to find the right {@link FlinkPipelineTranslator} for a given
+ * subclass of {@link Pipeline}.
+ */
+public final class FlinkPipelineTranslationUtil {
+
+	/**
+	 * Transmogrifies the given {@link Pipeline} to a {@link JobGraph}.
+	 */
+	public static JobGraph getJobGraph(
+		Pipeline pipeline,
+		Configuration optimizerConfiguration,
+		int defaultParallelism) {
+
+		FlinkPipelineTranslator pipelineTranslator = getPipelineTranslator(pipeline);
+
+		return pipelineTranslator.translateToJobGraph(pipeline,
+			optimizerConfiguration,
+			defaultParallelism);
+	}
+	
+......
+
+}
+```
+
 <h2 id="Source">Source</h2>
 
 <h3 id="source-from-text-file">source from text file</h3>
 
 ***org.apache.flink.streaming.api.environment.StreamExecutionEnvironment***
+
 
 ```
 	/**

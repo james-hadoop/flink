@@ -33,7 +33,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.apache.flink.util.TestLogger;
-
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -44,14 +43,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
+ * by james TEST JobListener
+ */
+
+/**
  * Unit tests for {@link JobListener}.
  */
 public class JobListenerITCase extends TestLogger {
 
 	@ClassRule
 	public static MiniClusterWithClientResource miniClusterResource = new MiniClusterWithClientResource(
-			new MiniClusterResourceConfiguration.Builder()
-					.build());
+		new MiniClusterResourceConfiguration.Builder()
+			.build());
 
 	private static Configuration getClientConfiguration() {
 		Configuration result = new Configuration(miniClusterResource.getClientConfiguration());

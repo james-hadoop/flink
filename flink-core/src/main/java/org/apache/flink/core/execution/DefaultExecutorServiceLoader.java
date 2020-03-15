@@ -35,6 +35,10 @@ import java.util.stream.StreamSupport;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
+ * by james
+ * 默认的PipelineExecutorServiceLoader
+ */
+/**
  * The default implementation of the {@link PipelineExecutorServiceLoader}. This implementation uses
  * Java service discovery to find the available {@link PipelineExecutorFactory executor factories}.
  */
