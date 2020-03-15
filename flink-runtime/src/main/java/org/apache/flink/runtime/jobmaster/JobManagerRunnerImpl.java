@@ -142,6 +142,10 @@ public class JobManagerRunnerImpl implements LeaderContender, OnCompletionAction
 
 			this.leaderGatewayFuture = new CompletableFuture<>();
 
+			/**
+			 * created by James on 2020-03-16
+			 * 生成JobMaster
+			 */
 			// now start the JobManager
 			this.jobMasterService = jobMasterFactory.createJobMasterService(jobGraph, this, userCodeLoader);
 		}
@@ -313,6 +317,10 @@ public class JobManagerRunnerImpl implements LeaderContender, OnCompletionAction
 			});
 	}
 
+	/**
+	 * created by James on 2020-03-16
+	 * 方法名称与打印日志不一致，JobMaster vs JobManager
+	 */
 	private CompletionStage<Void> startJobMaster(UUID leaderSessionId) {
 		log.info("JobManager runner for job {} ({}) was granted leadership with session id {} at {}.",
 			jobGraph.getName(), jobGraph.getJobID(), leaderSessionId, jobMasterService.getAddress());

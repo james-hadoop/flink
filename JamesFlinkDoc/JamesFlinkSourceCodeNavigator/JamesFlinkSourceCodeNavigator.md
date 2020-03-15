@@ -693,6 +693,25 @@ public class LocalExecutor implements PipelineExecutor {
 
 ![MiniDispatcher](pic/MiniDispatcher.png)
 
+<p>
+org.apache.flink.runtime.dispatcher.MiniDispatcher
+-> org.apache.flink.runtime.dispatcher.DispatcherServices
+-> org.apache.flink.runtime.dispatcher.JobManagerRunnerFactory
+-> org.apache.flink.runtime.dispatcher.DefaultJobManagerRunnerFactory
+-> org.apache.flink.runtime.jobmaster.JobManagerRunnerImpl
+</p>
+
+MiniDispatcher的调用链，通过调用JobManagerRunnerImpl的this.jobMasterService = jobMasterFactory.createJobMasterService(jobGraph, this, userCodeLoader);生成[JobMaster](#JobMaster)
+
+```
+			/**
+			 * created by James on 2020-03-16
+			 * 生成JobMaster
+			 */
+			// now start the JobManager
+			this.jobMasterService = jobMasterFactory.createJobMasterService(jobGraph, this, userCodeLoader);
+```
+
 <h3 id="FencedRpcEndpoint">FencedRpcEndpoint</h3>
 
 ***org.apache.flink.runtime.rpc.FencedRpcEndpoint***
