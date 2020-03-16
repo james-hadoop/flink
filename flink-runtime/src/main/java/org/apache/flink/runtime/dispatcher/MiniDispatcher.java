@@ -69,7 +69,7 @@ public class MiniDispatcher extends Dispatcher {
 	}
 
 	/**
-	 * created by James on 2020-03-15
+	 * created by James on 2020-03-15.
 	 * MiniCluster的Dispatcher，MiniDispatcher
 	 */
 	@Override

@@ -43,7 +43,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 /**
- * Created by James on 2020-03-15
+ * Created by James on 2020-03-15.
  */
 
 /**

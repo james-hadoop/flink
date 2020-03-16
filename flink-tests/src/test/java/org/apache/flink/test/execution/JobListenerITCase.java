@@ -35,15 +35,13 @@ import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.apache.flink.util.TestLogger;
 import org.junit.ClassRule;
 import org.junit.Test;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * * created by James on 2020-03-16 TEST JobListener
+ * created by James on 2020-03-16 TEST JobListener.
  */
 
 /**

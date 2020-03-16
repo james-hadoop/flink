@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
- * by james
+ * by james.
  * 默认的PipelineExecutorServiceLoader
  */
 /**

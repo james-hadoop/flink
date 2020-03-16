@@ -45,7 +45,8 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-/** by james
+/**
+ * by james.
  * Job执行结果，通过toJobExecutionResult()方法，生成JobExecutionResult
  */
 

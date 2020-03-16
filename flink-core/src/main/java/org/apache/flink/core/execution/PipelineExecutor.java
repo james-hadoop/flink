@@ -25,7 +25,7 @@ import org.apache.flink.configuration.Configuration;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * by james
+ * by james.
  * 执行job的PipelineExecutor，异步调用execute()方法之后，返回JobClient
  * 本地的PipelineExcecutor为org.apache.flink.client.deployment.executors.LocalExecutor
  */

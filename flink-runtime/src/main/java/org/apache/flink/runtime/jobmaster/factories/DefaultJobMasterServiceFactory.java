@@ -87,7 +87,7 @@ public class DefaultJobMasterServiceFactory implements JobMasterServiceFactory {
 	}
 
 	/**
-	 * created by James on 2020-03-16
+	 * created by James on 2020-03-16.
 	 * 生成JobMaster
 	 */
 	@Override

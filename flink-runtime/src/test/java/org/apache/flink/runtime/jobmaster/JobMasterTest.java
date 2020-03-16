@@ -196,7 +196,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * created by James on 2020-03-16 TEST JobMaster
+ * created by James on 2020-03-16 TEST JobMaster.
  */
 
 /**

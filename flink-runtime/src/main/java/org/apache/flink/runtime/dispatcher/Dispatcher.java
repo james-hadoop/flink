@@ -259,7 +259,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 	}
 
 	/**
-	 * created by James on 2020-03-15
+	 * created by James on 2020-03-15.
 	 * 被MiniDispatcher调用，判断完异常之后，调用internalSubmitJob(jobGraph)方法
 	 */
 	//------------------------------------------------------
@@ -325,7 +325,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 	}
 
 	/**
-	 * created by James on 2020-03-16
+	 * created by James on 2020-03-16.
 	 * MiniCluter上提交JobGraph的实际执行的地方
 	 * 通过waitForTerminatingJobManager()方法，与JobManager交互
 	 */
@@ -830,7 +830,7 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 	}
 
 	/**
-	 * created by James on 2020-03-16
+	 * created by James on 2020-03-16.
 	 * 调用getMainThreadExecutor()
 	 */
 	private CompletableFuture<Void> waitForTerminatingJobManager(JobID jobId, JobGraph jobGraph, FunctionWithException<JobGraph, CompletableFuture<Void>, ?> action) {

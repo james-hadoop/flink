@@ -24,7 +24,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
 /**
- * by james
+ * by james.
  * 根据Pipleline，生成JobGraph。StreamGraph是一种Pipeline
  */
 
@@ -36,7 +36,7 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 public final class FlinkPipelineTranslationUtil {
 
 	/**
-	 * by james
+	 * by james.
 	 * 把Pipeline翻译成JobGraph
 	 */
 	/**

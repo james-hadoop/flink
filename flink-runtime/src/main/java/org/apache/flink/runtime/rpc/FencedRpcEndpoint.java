@@ -56,7 +56,7 @@ public abstract class FencedRpcEndpoint<F extends Serializable> extends RpcEndpo
 		this.fencingToken = fencingToken;
 		this.unfencedMainThreadExecutor = new UnfencedMainThreadExecutor((FencedMainThreadExecutable) rpcServer);
 		/**
-		 * created by James on 2020-03-16
+		 * created by James on 2020-03-16.
 		 * new MainThreadExecutor()， 传入getRpcService()的fenceRpcServer()方法
 		 */
 		this.fencedMainThreadExecutor = new MainThreadExecutor(
@@ -127,7 +127,7 @@ public abstract class FencedRpcEndpoint<F extends Serializable> extends RpcEndpo
 	}
 
 	/**
-	 * created by James on 2020-03-16
+	 * created by James on 2020-03-16.
 	 * 被JobMaster调用
 	 */
 	/**

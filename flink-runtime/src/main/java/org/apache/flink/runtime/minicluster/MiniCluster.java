@@ -113,7 +113,7 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
- * created by James on 2020-03-16
+ * created by James on 2020-03-16.
  * 本地执行Flink Job的地方
  */
 /**
@@ -639,7 +639,7 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 		checkNotNull(job, "job is null");
 
 		/**
-		 * created by James on 2020-03-15
+		 * created by James on 2020-03-15.
 		 * submitJob(job)方法，提交Job，生成JobSubmissionResult
 		 */
 		final CompletableFuture<JobSubmissionResult> submissionFuture = submitJob(job);
@@ -663,7 +663,7 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	}
 
 	/**
-	 * created by James on 2020-03-15
+	 * created by James on 2020-03-15.
 	 * 提交JobGraph，生成JobSubmissionResult
 	 */
 	public CompletableFuture<JobSubmissionResult> submitJob(JobGraph jobGraph) {
@@ -672,7 +672,7 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 		final CompletableFuture<Void> jarUploadFuture = uploadAndSetJobFiles(blobServerAddressFuture, jobGraph);
 
 		/**
-		 * created by James on 2020-03-15
+		 * created by James on 2020-03-15.
 		 * 提交JobGraph
 		 */
 		final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = jarUploadFuture

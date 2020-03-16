@@ -1490,8 +1490,9 @@ public class StreamExecutionEnvironment {
 		return new DataStreamSource<>(this, typeInfo, sourceOperator, isParallel, sourceName);
 	}
 
-	/** by james
-	 *  起点（开始）
+	/**
+	 * by james.
+	 * 起点（开始）
 	 */
 	/**
 	 * Triggers the program execution. The environment will execute all parts of
@@ -1557,7 +1558,7 @@ public class StreamExecutionEnvironment {
 			}
 
 			/**
-			 * by james
+			 * by james.
 			 * Job执行完毕
 			 */
 			jobListeners.forEach(jobListener -> jobListener.onJobExecuted(jobExecutionResult, null));
@@ -1643,7 +1644,7 @@ public class StreamExecutionEnvironment {
 		checkNotNull(configuration.get(DeploymentOptions.TARGET), "No execution.target specified in your configuration file.");
 
 		/**
-		 * by james
+		 * by james.
 		 * 根据配置信息，生成PipelineExecutorFactory
 		 */
 		final PipelineExecutorFactory executorFactory =

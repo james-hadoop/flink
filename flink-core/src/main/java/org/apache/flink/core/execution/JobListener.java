@@ -24,7 +24,7 @@ import org.apache.flink.api.common.JobExecutionResult;
 import javax.annotation.Nullable;
 
 /**
- * by james
+ * by james.
  * 监听Job的提交以及执行行为
  */
 
