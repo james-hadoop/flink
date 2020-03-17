@@ -42,6 +42,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
+ * created by James on 2020-03-17.
+ * ArchivedExecutionGraph是ExecutionGraph的序列化
+ */
+/**
  * An archived execution graph represents a serializable form of the {@link ExecutionGraph}.
  */
 public class ArchivedExecutionGraph implements AccessExecutionGraph, Serializable {

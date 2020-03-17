@@ -47,6 +47,10 @@ import java.util.Random;
 import java.util.UUID;
 
 /**
+ * created by James on 2020-03-17.
+ * 操作Blob的工具类
+ */
+/**
  * Utility class to work with blob data.
  */
 public class BlobUtils {

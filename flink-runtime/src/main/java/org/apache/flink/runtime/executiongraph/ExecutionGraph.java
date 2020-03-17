@@ -18,6 +18,11 @@
 
 package org.apache.flink.runtime.executiongraph;
 
+/**
+ * created by James on 2020-03-17.
+ * ExecutionGraph是task分布式执行的数据结构
+ * 表征了并行任务以及中间流
+ */
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.ArchivedExecutionConfig;
 import org.apache.flink.api.common.ExecutionConfig;

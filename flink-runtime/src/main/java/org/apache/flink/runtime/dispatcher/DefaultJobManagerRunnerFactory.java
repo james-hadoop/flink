@@ -40,11 +40,20 @@ import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.shuffle.ShuffleServiceLoader;
 
 /**
+ * created by James on 2020-03-17.
+ * JobManagerRunnerImpl的单例工厂，为JobManager初始化成员变量，如DefaultSlotPoolFactory
+ */
+/**
  * Singleton default factory for {@link JobManagerRunnerImpl}.
  */
 public enum DefaultJobManagerRunnerFactory implements JobManagerRunnerFactory {
 	INSTANCE;
 
+	/**
+	 * created by James on 2020-03-17.
+	 * 被Dispatcher调用，创建JobManagerRunner
+	 * 初始化JobManagerRunner用到的参数
+	 */
 	@Override
 	public JobManagerRunner createJobManagerRunner(
 			JobGraph jobGraph,

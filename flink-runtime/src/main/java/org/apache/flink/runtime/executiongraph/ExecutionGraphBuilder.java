@@ -77,6 +77,10 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public class ExecutionGraphBuilder {
 
 	/**
+	 * created by James on 2020-03-17.
+	 * 生成ExecutionGraph的工具类
+	 */
+	/**
 	 * Builds the ExecutionGraph from the JobGraph.
 	 * If a prior execution graph exists, the JobGraph will be attached. If no prior execution
 	 * graph exists, then the JobGraph will become attach to a new empty execution graph.

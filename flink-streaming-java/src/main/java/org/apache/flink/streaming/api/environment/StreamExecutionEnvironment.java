@@ -1491,7 +1491,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * 起点（开始）
 	 */
 	/**
@@ -1510,7 +1510,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * 调用StreamGraphGenerator的generate()，生成StreamGraph
 	 * 继续调用execute(StreamGraph streamGraph)，生成JobExecutionResult
 	 */
@@ -1532,7 +1532,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * StreamGraph -> JobGraph -> JobClient -> JobExecutionResult
 	 */
 	/**
@@ -1558,7 +1558,7 @@ public class StreamExecutionEnvironment {
 			}
 
 			/**
-			 * by james.
+			 * created by James.
 			 * Job执行完毕
 			 */
 			jobListeners.forEach(jobListener -> jobListener.onJobExecuted(jobExecutionResult, null));
@@ -1626,7 +1626,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * StreamGraph -> JobExecutionResult
 	 */
 	/**
@@ -1644,7 +1644,7 @@ public class StreamExecutionEnvironment {
 		checkNotNull(configuration.get(DeploymentOptions.TARGET), "No execution.target specified in your configuration file.");
 
 		/**
-		 * by james.
+		 * created by James.
 		 * 根据配置信息，生成PipelineExecutorFactory
 		 */
 		final PipelineExecutorFactory executorFactory =
@@ -1656,7 +1656,7 @@ public class StreamExecutionEnvironment {
 			configuration.get(DeploymentOptions.TARGET));
 
 		/**
-		 * by james.
+		 * created by James.
 		 * 异步生成JobClient，JobClient是获取Job结果的发起端
 		 * 见本地PipelineExecutor：org.apache.flink.client.deployment.executors.LocalExecutor
 		 */
@@ -1667,7 +1667,7 @@ public class StreamExecutionEnvironment {
 		try {
 			JobClient jobClient = jobClientFuture.get();
 			/**
-			 * by james
+			 * created by James
 			 * Job提交完毕
 			 */
 			jobListeners.forEach(jobListener -> jobListener.onJobSubmitted(jobClient, null));
@@ -1705,7 +1705,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * 通过getStreamGraphGenerator()，生成StreamGraphGenerator
 	 * 通过StreamGraphGenerator的generate()，生成StreamGraph
 	 * StreamGraph的getJobGraph(@Nullable JobID jobID)方法调用StreamingJobGraphGenerator的createJobGraph()方法，
@@ -1731,7 +1731,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * 参数transformations是需要StreamExecutionEnvironment在调用该方法前传入的
 	 * transformations是一个存放transformation的List
 	 * transformations是通过调用addOperator()方法，添加transformation元素的，如addSource()、addSink()
@@ -1776,7 +1776,7 @@ public class StreamExecutionEnvironment {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * 当addOperator()方法被调用时，会在StreamExecutionEnvironment的transformations会add对应的transformation
 	 * DataStream的addSink()方法会调用DataStreamSink的getTransformation()方法
 	 * 并非所有的Operator都有transformation，只有个别的Operator才有对应的transformation，如：Source, Sink, Union, Split

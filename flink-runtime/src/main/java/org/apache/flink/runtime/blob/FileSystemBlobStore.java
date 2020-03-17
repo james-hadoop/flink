@@ -38,6 +38,10 @@ import java.util.Arrays;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
+ * created by James on 2020-03-17.
+ * FileSystemBlobStore
+ */
+/**
  * Blob store backed by {@link FileSystem}.
  *
  * <p>This is used in addition to the local blob storage for high availability.

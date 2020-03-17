@@ -29,6 +29,10 @@ import org.apache.flink.runtime.util.clock.SystemClock;
 import javax.annotation.Nonnull;
 
 /**
+ * created by James on 2020-03-17.
+ * 默认SlotPool工程类，被JobMaster调用，创建SlotPool
+ */
+/**
  * Default slot pool factory.
  */
 public class DefaultSlotPoolFactory implements SlotPoolFactory {

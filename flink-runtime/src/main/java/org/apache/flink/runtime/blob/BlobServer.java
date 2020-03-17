@@ -63,6 +63,11 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
+ * created by James on 2020-03-17.
+ * 接受请求和处理和缓存数据
+ * 是一个线程类
+ */
+/**
  * This class implements the BLOB server. The BLOB server is responsible for listening for incoming requests and
  * spawning threads to handle these requests. Furthermore, it takes care of creating the directory structure to store
  * the BLOBs or temporarily cache them.
@@ -255,6 +260,10 @@ public class BlobServer extends Thread implements BlobService, BlobWriter, Perma
 				try {
 					synchronized (activeConnections) {
 						while (activeConnections.size() >= maxConnections) {
+							/**
+							 * created by James on 2020-03-17.
+							 * activeConnections有最大连接限制
+							 */
 							activeConnections.wait(2000);
 						}
 						activeConnections.add(conn);

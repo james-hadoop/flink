@@ -53,8 +53,12 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
+ * created by James on 2020-03-17.
+ *
+ */
+/**
  * The runner for the job manager. It deals with job level leader election and make underlying job manager
- * properly reacted.
+ * JobManagerRunnerImpl是启动Job的地方
  */
 public class JobManagerRunnerImpl implements LeaderContender, OnCompletionActions, JobManagerRunner {
 

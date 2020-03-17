@@ -816,7 +816,7 @@ public class StreamGraph implements Pipeline {
 	}
 
 	/**
-	 * by james.
+	 * created by James.
 	 * StreamGraph的createJobGraph()方法可以直接生成JobGraph
 	 */
 	/**

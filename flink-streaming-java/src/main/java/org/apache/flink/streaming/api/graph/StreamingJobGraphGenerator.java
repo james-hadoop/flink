@@ -84,7 +84,7 @@ import java.util.Set;
 import static org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration.MINIMAL_CHECKPOINT_TIME;
 import static org.apache.flink.util.Preconditions.checkState;
 
-/** by james.
+/** created by James.
  * StreamGraph -> JobGraph
  */
 /**
@@ -167,7 +167,7 @@ public class StreamingJobGraphGenerator {
 		Map<Integer, List<Tuple2<byte[], byte[]>>> chainedOperatorHashes = new HashMap<>();
 
 		/**
-		 * by james.
+		 * created by James.
 		 * 被StreamGraph的getJobGraph()方法调用
 		 * StreamGraph -> JobGraph的主要工作就是setChaining()，优化Operator的计算
 		 */

@@ -45,6 +45,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
+ * created by James on 2020-03-17.
+ * 生成DefaultScheduler，DefaultScheduler可以创建ExecutionGraph
+ */
+/**
  * Factory for {@link DefaultScheduler}.
  */
 public class DefaultSchedulerFactory implements SchedulerNGFactory {

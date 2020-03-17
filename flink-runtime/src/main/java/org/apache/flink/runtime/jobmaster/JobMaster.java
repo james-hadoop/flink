@@ -115,8 +115,26 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
- * created by James on 2020-03-16.
+ * created by James on 2020-03-17.
  * JobMaster负责执行JobGraph
+ * <p>
+ * // --------- BackPressure --------
+ * <p>
+ * private final BackPressureStatsTracker backPressureStatsTracker;
+ * <p>
+ * // --------- ResourceManager --------
+ * <p>
+ * private final LeaderRetrievalService resourceManagerLeaderRetriever;
+ * <p>
+ * // --------- TaskManagers --------
+ * <p>
+ * private final Map<ResourceID, Tuple2<TaskManagerLocation, TaskExecutorGateway>> registeredTaskManagers;
+ * <p>
+ * private final ShuffleMaster<?> shuffleMaster;
+ * <p>
+ * // -------- Mutable fields ---------
+ * <p>
+ * private HeartbeatManager<AccumulatorReport, AllocatedSlotReport> taskManagerHeartbeatManager;
  */
 
 /**
@@ -922,6 +940,10 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 					? partitionTracker::stopTrackingAndReleaseOrPromotePartitionsFor
 					: partitionTracker::stopTrackingAndReleasePartitionsFor));
 
+			/**
+			 * created by James on 2020-03-17.
+			 * 生成ArchivedExecutionGraph
+			 */
 			final ArchivedExecutionGraph archivedExecutionGraph = schedulerNG.requestJob();
 			scheduledExecutorService.execute(() -> jobCompletionActions.jobReachedGloballyTerminalState(archivedExecutionGraph));
 		}

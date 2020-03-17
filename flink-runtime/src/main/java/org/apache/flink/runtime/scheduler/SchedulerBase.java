@@ -122,6 +122,10 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
 /**
+ * created by James on 2020-03-17.
+ * 调度抽象类，创建ExecutionGraph
+ */
+/**
  * Base class which can be used to implement {@link SchedulerNG}.
  */
 public abstract class SchedulerBase implements SchedulerNG {
@@ -251,6 +255,10 @@ public abstract class SchedulerBase implements SchedulerNG {
 		return newExecutionGraph;
 	}
 
+	/**
+	 * created by James on 2020-03-17.
+	 * 调用ExecutionGraphBuilder工具类，创建ExecutionGraph
+	 */
 	private ExecutionGraph createExecutionGraph(
 		JobManagerJobMetricGroup currentJobManagerJobMetricGroup,
 		ShuffleMaster<?> shuffleMaster,

@@ -88,6 +88,10 @@ public class MiniDispatcher extends Dispatcher {
 		return acknowledgeCompletableFuture;
 	}
 
+	/**
+	 * created by James on 2020-03-17.
+	 * 获取和处理JobResult
+	 */
 	@Override
 	public CompletableFuture<JobResult> requestJobResult(JobID jobId, Time timeout) {
 		final CompletableFuture<JobResult> jobResultFuture = super.requestJobResult(jobId, timeout);

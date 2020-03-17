@@ -23,7 +23,7 @@ import org.apache.flink.runtime.client.JobExecutionException;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 
 /**
- * by james.
+ * created by James.
  * JobGraph -> JobExecutionResult
  */
 

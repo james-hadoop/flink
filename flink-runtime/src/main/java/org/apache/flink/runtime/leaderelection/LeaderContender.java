@@ -21,6 +21,10 @@ package org.apache.flink.runtime.leaderelection;
 import java.util.UUID;
 
 /**
+ * created by James on 2020-03-17.
+ * 选主接口
+ */
+/**
  * Interface which has to be implemented to take part in the leader election process of the
  * {@link LeaderElectionService}.
  */

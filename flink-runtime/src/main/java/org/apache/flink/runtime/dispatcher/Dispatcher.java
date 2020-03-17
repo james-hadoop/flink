@@ -88,6 +88,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * created by James on 2020-03-17.
+ * Dispatcher是接收Job提交的地方
+ */
+/**
  * Base class for the Dispatcher component. The Dispatcher component is responsible
  * for receiving job submissions, persisting them, spawning JobManagers to execute
  * the jobs and to recover them in case of a master failure. Furthermore, it knows
@@ -361,6 +365,10 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 		}));
 	}
 
+	/**
+	 * created by James on 2020-03-17.
+	 * 根据JobGraph，创建Scheduler，Scheduler创建ExecutionGraph
+	 */
 	private CompletableFuture<Void> runJob(JobGraph jobGraph) {
 		Preconditions.checkState(!jobManagerRunnerFutures.containsKey(jobGraph.getJobID()));
 

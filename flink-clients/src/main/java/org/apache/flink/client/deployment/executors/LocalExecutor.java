@@ -66,12 +66,12 @@ public class LocalExecutor implements PipelineExecutor {
 		checkState(configuration.getBoolean(DeploymentOptions.ATTACHED));
 
 		/**
-		 * by james.
+		 * created by James.
 		 * 生成JobGraph
 		 */
 		final JobGraph jobGraph = getJobGraph(pipeline, configuration);
 		/**
-		 * by james.
+		 * created by James.
 		 * MiniCluster是本地Flink的执行环境
 		 */
 		final MiniCluster miniCluster = startMiniCluster(jobGraph, configuration);
@@ -128,7 +128,7 @@ public class LocalExecutor implements PipelineExecutor {
 				.build();
 
 		/**
-		 * by james.
+		 * created by James.
 		 * new MiniCluster并启动
 		 */
 		final MiniCluster miniCluster = new MiniCluster(miniClusterConfiguration);

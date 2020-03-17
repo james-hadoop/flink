@@ -34,6 +34,10 @@ import org.apache.flink.runtime.webmonitor.retriever.LeaderGatewayRetriever;
 import java.util.concurrent.ExecutorService;
 
 /**
+ * created by James on 2020-03-17.
+ * 生成MiniDispatcherRestEndpoint
+ */
+/**
  * {@link RestEndpointFactory} which creates a {@link MiniDispatcherRestEndpoint}.
  */
 public enum JobRestEndpointFactory implements RestEndpointFactory<RestfulGateway> {
