@@ -41,7 +41,11 @@ import java.io.Reader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-
+/**
+ * create by James on 2020-04-16.
+ *
+ * FlinkSqlParserImpl
+ */
 /** FlinkSqlParserImpl tests. **/
 public class FlinkSqlParserImplTest extends SqlParserTest {
 	private SqlConformance conformance0;
@@ -624,6 +628,11 @@ public class FlinkSqlParserImplTest extends SqlParserTest {
 		check(sql, "DROP TABLE IF EXISTS `CATALOG1`.`DB1`.`TBL1`");
 	}
 
+	/**
+	 * create by James on 2020-04-16.
+	 *
+	 * 测试用例: insert into
+	 */
 	@Test
 	public void testInsertPartitionSpecs() {
 		final String sql1 = "insert into emps(x,y) partition (x='ab', y='bc') select * from emps";
@@ -832,6 +841,11 @@ public class FlinkSqlParserImplTest extends SqlParserTest {
 			description.appendText("test");
 		}
 
+		/**
+		 * create by James on 2020-04-16.
+		 *
+		 * 验证SQL列名是否正确
+		 */
 		@Override
 		public boolean matches(Object item) {
 			if (item instanceof ExtendedSqlNode) {
